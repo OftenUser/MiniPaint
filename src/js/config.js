@@ -1,9 +1,9 @@
-//main config file
+// Main config file
 
 var config = {};
 
 config.TRANSPARENCY = false;
-config.TRANSPARENCY_TYPE = 'squares'; //squares, green, grey
+config.TRANSPARENCY_TYPE = 'squares'; // Squares, green, grey
 config.LANG = 'en';
 config.WIDTH = null;
 config.HEIGHT = null;
@@ -31,14 +31,14 @@ config.guides = [];
 config.ruler_active = false;
 config.enable_autoresize_by_default = true;
 
-//requires styles in reset.css
+// Requires styles in reset.css
 config.themes = [
 	'dark',
 	'light',
 	'green',
 ];
 
-//no-translate BEGIN
+// No-translate BEGIN
 config.FONTS = [
 	"Arial",
 	"Courier",
@@ -77,12 +77,12 @@ config.FONTS = [
 	"Titillium Web",
 	"Ubuntu"
 ];
-//no-translate END
+// No-translate END
 
 config.TOOLS = [
 	{
 		name: 'select',
-		title: 'Select object tool',
+		title: 'Select Object Tool',
 		attributes: {
 			auto_select: true,
 		},
@@ -144,7 +144,7 @@ config.TOOLS = [
 		title: 'Shapes (H)',
 		attributes: {
 			size: 3,
-			stroke: '#00aa00',
+			stroke: '#00AA00',
 		},
 	},
 	{
@@ -169,7 +169,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 			radius: {
 				value: 0,
 				min: 0,
@@ -185,7 +185,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 			circle: false,
 		},
 	},
@@ -205,7 +205,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -216,7 +216,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -227,7 +227,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -238,7 +238,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -249,7 +249,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -260,7 +260,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -271,7 +271,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -282,7 +282,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -295,7 +295,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -306,7 +306,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -317,7 +317,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -327,7 +327,7 @@ config.TOOLS = [
 			border_size: 4,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -338,7 +338,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -363,7 +363,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -374,7 +374,7 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 	{
@@ -430,7 +430,7 @@ config.TOOLS = [
 		name: 'gradient',
 		attributes: {
 			color_1: '#008000',
-			color_2: '#ffffff',
+			color_2: '#FFFFFF',
 			alpha: 0,
 			radial: false,
 			radial_power: 50,
@@ -502,12 +502,12 @@ config.TOOLS = [
 			border: true,
 			fill: true,
 			border_color: '#555555',
-			fill_color: '#aaaaaa',
+			fill_color: '#AAAAAA',
 		},
 	},
 ];
 
-//link to active tool
+// Link to active tool
 config.TOOL = config.TOOLS[2];
 	
 export default config;
