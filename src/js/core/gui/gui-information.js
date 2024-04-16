@@ -4,10 +4,10 @@
  */
 
 import config from './../../config.js';
-import Base_layers_class from './../base-layers.js';
-import Tools_settings_class from './../../modules/tools/settings.js';
-import Helper_class from './../../libs/helpers.js';
-import Tools_translate_class from './../../modules/tools/translate.js';
+import BaseLayersClass from './../base-layers.js';
+import ToolsSettingsClass from './../../modules/tools/settings.js';
+import HelperClass from './../../libs/helpers.js';
+import ToolsTranslateClass from './../../modules/tools/translate.js';
 
 var template = `
 	<span class="trn label">Size:</span>
@@ -25,81 +25,83 @@ var template = `
 /**
  * GUI class responsible for rendering information block on right sidebar
  */
-class GUI_information_class {
+class GUIInformationClass {
 
 	constructor(ctx) {
-		this.Base_layers = new Base_layers_class();
-		this.Tools_settings = new Tools_settings_class();
-		this.Helper = new Helper_class();
-		this.Tools_translate = new Tools_translate_class();
-		this.last_width = null;
-		this.last_height = null;
-		this.units = this.Tools_settings.get_setting('default_units');
-		this.resolution = this.Tools_settings.get_setting('resolution');
+		this.BaseLayers = new BaseLayersClass();
+		this.ToolsSettings = new ToolsSettingsClass();
+		this.Helper = new HelperClass();
+		this.ToolsTranslate = new ToolsTranslateClass();
+		this.lastWidth = null;
+		this.lastHeight = null;
+		this.units = this.ToolsSettings.getSetting('default_units');
+		this.resolution = this.ToolsSettings.getSetting('resolution');
 	}
 
-	render_main_information() {
+	renderMainInformation() {
 		document.getElementById('toggle_info').innerHTML = template;
+		
 		if (config.LANG != 'en') {
-			this.Tools_translate.translate(config.LANG, document.getElementById('toggle_info'));
+			this.ToolsTranslate.translate(config.LANG, document.getElementById('toggle_info'));
 		}
-		this.set_events();
-		this.show_size();
+		
+		this.setEvents();
+		this.showSize();
 	}
 
-	set_events() {
+	setEvents() {
 		var _this = this;
 		var target = document.getElementById('mouse_info_mouse');
 
-		//show width and height
-		//should use canvas resize API in future
-		document.addEventListener('mousemove', function (e) {
+		// Show width and height
+		// Should use canvas resize API in future
+		document.addEventListener('mousemove', function(e) {
 			_this.show_size();
 		}, false);
 
-		//show current mouse position
-		document.getElementById('canvas_minipaint').addEventListener('mousemove', function (e) {
-			var global_pos = _this.Base_layers.get_world_coords(e.offsetX, e.offsetY);
-			var mouse_x = Math.ceil(global_pos.x);
-			var mouse_y = Math.ceil(global_pos.y);
+		// Show current mouse position
+		document.getElementById('canvas_minipaint').addEventListener('mousemove', function(e) {
+			var globalPos = _this.BaseLayers.getWorldCoordinates(e.offsetX, e.offsetY);
+			var mouseX = Math.ceil(globalPos.x);
+			var mouseY = Math.ceil(globalPos.y);
 
-			mouse_x = _this.Helper.get_user_unit(mouse_x, _this.units, _this.resolution);
-			mouse_y = _this.Helper.get_user_unit(mouse_y, _this.units, _this.resolution);
+			mouseX = _this.Helper.getUserUnit(mouseX, _this.units, _this.resolution);
+			mouseY = _this.Helper.getUserUnit(mouseY, _this.units, _this.resolution);
 
-			target.innerHTML = mouse_x + ', ' + mouse_y;
+			target.innerHTML = mouseX + ', ' + mouseY;
 		}, false);
 	}
 
-	update_units(){
-		this.units = this.Tools_settings.get_setting('default_units');
-		this.resolution = this.Tools_settings.get_setting('resolution');
-		this.show_size(true);
+	updateUnits() {
+		this.units = this.ToolsSettings.getSetting('default_units');
+		this.resolution = this.ToolsSettings.getSetting('resolution');
+		this.showSize(true);
 	}
 
-	show_size(force) {
+	showSize(force) {
 		if(force == undefined && this.last_width == config.WIDTH && this.last_height == config.HEIGHT) {
 			return;
 		}
 
-		var width = this.Helper.get_user_unit(config.WIDTH, this.units, this.resolution);
-		var height = this.Helper.get_user_unit(config.HEIGHT, this.units, this.resolution);
+		var width = this.Helper.getUserUnit(config.WIDTH, this.units, this.resolution);
+		var height = this.Helper.getUserUnit(config.HEIGHT, this.units, this.resolution);
 
 		document.getElementById('mouse_info_size').innerHTML = width + ' x ' + height;
 
-		var resolution = this.Tools_settings.get_setting('resolution');
+		var resolution = this.ToolsSettings.getSetting('resolution');
 		document.getElementById('mouse_info_resolution').innerHTML = resolution;
 
-		//show units
-		var default_units = this.Tools_settings.get_setting('default_units_short');
+		// Show units
+		var defaultUnits = this.ToolsSettings.getSetting('default_units_short');
 		var targets = document.querySelectorAll('.id-mouse_info_units');
 		for (var i = 0; i < targets.length; i++) {
-			targets[i].innerHTML = default_units;
+			targets[i].innerHTML = defaultUnits;
 		}
 
-		this.last_width = config.WIDTH;
-		this.last_height = config.HEIGHT;
+		this.lastWidth = config.WIDTH;
+		this.lastHeight = config.HEIGHT;
 	}
 
 }
 
-export default GUI_information_class;
+export default GUIInformationClass;
