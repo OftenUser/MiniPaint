@@ -1,12 +1,12 @@
-import Dialog_class from './../../libs/popup.js';
+import DialogClass from './../../libs/popup.js';
 
-class Help_shortcuts_class {
+class HelpShortcutsClass {
 
 	constructor() {
-		this.POP = new Dialog_class();
+		this.POP = new DialogClass();
 	}
 
-	//shortcuts
+	// Shortcuts
 	shortcuts() {
 		var settings = {
 			title: 'Keyboard Shortcuts',
@@ -17,28 +17,29 @@ class Help_shortcuts_class {
 				{title: "Ctrl + C", value: 'Copy to Clipboard'},
 				{title: "D", value: 'Duplicate'},
 				{title: "S", value: 'Export'},
-				{title: "G", value: 'Grid on/off'},
+				{title: "G", value: 'Grid On/Off'},
 				{title: "I", value: 'Information'},
-				{title: "N", value: 'New layer'},
+				{title: "N", value: 'New Layer'},
 				{title: "O", value: 'Open'},
 				{title: "CTRL + V", value: 'Paste'},
 				{title: "F10", value: 'Quick Load'},
 				{title: "F9", value: 'Quick Save'},
 				{title: "R", value: 'Resize'},
-				{title: "L", value: 'Rotate left'},
+				{title: "L", value: 'Rotate Left'},
 				{title: "U", value: 'Ruler'},
 				{title: "Shift + S", value: 'Save As'},
 				{title: "CTRL + A", value: 'Select All'},
 				{title: "H", value: 'Shapes'},
 				{title: "T", value: 'Trim'},
 				{title: "CTRL + Z", value: 'Undo'},
-				{title: "Scroll up", value: 'Zoom in'},
-				{title: "Scroll down", value: 'Zoom out'},
+				{title: "Scroll up", value: 'Zoom In'},
+				{title: "Scroll down", value: 'Zoom Out'},
 			],
 		};
+		
 		this.POP.show(settings);
 	}
 
 }
 
-export default Help_shortcuts_class;
+export default HelpShortcutsClass;
