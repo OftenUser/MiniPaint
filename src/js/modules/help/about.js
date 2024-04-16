@@ -1,32 +1,33 @@
 import config from './../../config.js';
-import Dialog_class from './../../libs/popup.js';
+import DialogClass from './../../libs/popup.js';
 
-class Help_about_class {
+class HelpAboutClass {
 
 	constructor() {
-		this.POP = new Dialog_class();
+		this.POP = new DialogClass();
 	}
 
-	//about
+	// About
 	about() {
 		var email = 'www.viliusl@gmail.com';	
 		
 		var settings = {
 			title: 'About',
 			params: [
-				{title: "", html: '<img style="width:64px;" class="about-logo" alt="" src="images/logo-colors.png" />'},
-				{title: "Name:", html: '<span class="about-name">miniPaint</span>'},
+				{title: "", html: '<img style="width: 64px;" class="about-logo" alt="MiniPaint" src="images/logo-colors.png" />'},
+				{title: "Name:", html: '<span class="about-name">MiniPaint</span>'},
 				{title: "Version:", value: VERSION},
-				{title: "Description:", value: "Online image editor."},
+				{title: "Description:", value: "Online Image Editor"},
 				{title: "Author:", value: 'ViliusL'},
-				{title: "Email:", html: '<a href="mailto:' + email + '">' + email + '</a>'},
-				{title: "GitHub:", html: '<a href="https://github.com/viliusle/miniPaint">https://github.com/viliusle/miniPaint</a>'},
-				{title: "Website:", html: '<a href="https://viliusle.github.io/miniPaint/">https://viliusle.github.io/miniPaint/</a>'},
+				{title: "Email:", html: '<a href="mailto:' + email + '" title="' + email + '">' + email + '</a>'},
+				{title: "GitHub:", html: '<a href="https://github.com/Viliusle/MiniPaint" title="https://github.com/Viliusle/MiniPaint">https://github.com/Viliusle/MiniPaint</a>'},
+				{title: "Website:", html: '<a href="https://viliusle.github.io/MiniPaint/" title="https://viliusle.github.io/MiniPaint/">https://viliusle.github.io/MiniPaint/</a>'},
 			],
 		};
+		
 		this.POP.show(settings);
 	}
 
 }
 
-export default Help_about_class;
+export default HelpAboutClass;
