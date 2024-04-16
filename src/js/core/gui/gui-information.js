@@ -1,6 +1,6 @@
 /*
- * miniPaint - https://github.com/viliusle/miniPaint
- * author: Vilius L.
+ * MiniPaint - https://github.com/Viliusle/MiniPaint
+ * Author: Vilius L.
  */
 
 import config from './../../config.js';
