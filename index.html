@@ -1,31 +1,34 @@
 <!DOCTYPE html>
 <html dir="ltr" lang="en-US">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="x-ua-compatible" content="IE=edge" />
-	<title>miniPaint - image editor</title>
-	<meta name="description" content="miniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
+	<title>MiniPaint - Image Editor</title>
+	<meta name="description" content="MiniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
 	<meta name="keywords" content="photo, image, picture, transparent, layers, free, edit, html5, canvas, javascript, online, photoshop, gimp, effects, sharpen, blur, magic eraser tool, clone tool, rotate, resize, photoshop online, online tools, tilt shift, sprites, keypoints" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0" />
 	<link rel="icon" sizes="192x192" href="images/favicon.png">
 	<!-- <link rel="manifest" href="dist/manifest.json"> -->
+	
 	<!-- Google -->
-	<meta itemprop="name" content="miniPaint" />
-	<meta itemprop="description" content="miniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
-	<meta itemprop="image" content="https://viliusle.github.io/miniPaint/images/preview.jpg" />
+	<meta itemprop="name" content="MiniPaint" />
+	<meta itemprop="description" content="MiniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
+	
+	<meta itemprop="image" content="https://viliusle.github.io/MiniPaint/images/preview.jpg" />
 	<!-- Twitter -->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="miniPaint" />
-	<meta name="twitter:description" content="miniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
-	<meta name="twitter:image" content="https://viliusle.github.io/miniPaint/images/preview.jpg" />
-	<meta name="twitter:image:alt" content="miniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
+	<meta name="twitter:title" content="MiniPaint" />
+	<meta name="twitter:description" content="MiniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
+	<meta name="twitter:image" content="https://viliusle.github.io/MiniPaint/images/preview.jpg" />
+	<meta name="twitter:image:alt" content="MiniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
+	
 	<!-- Facebook, Pinterest -->
-	<meta property="og:title" content="miniPaint" />
+	<meta property="og:title" content="MiniPaint" />
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content="https://viliusle.github.io/miniPaint/" />
-	<meta property="og:image" content="https://viliusle.github.io/miniPaint/images/preview.jpg" />
-	<meta property="og:description" content="miniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
-	<meta property="og:site_name" content="miniPaint" />
+	<meta property="og:url" content="https://viliusle.github.io/MiniPaint/" />
+	<meta property="og:image" content="https://viliusle.github.io/MiniPaint/images/preview.jpg" />
+	<meta property="og:description" content="MiniPaint is free online image editor using HTML5. Edit, adjust your images, add effects online in your browser, without installing anything..." />
+	<meta property="og:site_name" content="MiniPaint" />
 	
 	<script src="dist/bundle.js"></script>
 </head>
@@ -35,9 +38,9 @@
 		<nav aria-label="Main Menu" class="main_menu" id="main_menu"></nav>
 		
 		<div class="submenu">
-			<a class="logo" href="#">miniPaint</a>
+			<a class="logo" href="#" title="MiniPaint">MiniPaint</a>
 			<div class="block attributes" id="action_attributes"></div>
-			<button class="undo_button" id="undo_button" type="button">
+			<button class="undo_button" id="undo_button" type="button" title="Undo">
 				<span class="sr_only">Undo</span>
 			</button>
 		</div>
@@ -65,22 +68,22 @@
 
 		<div class="sidebar_right">
 			<div class="preview block">
-				<h2 class="trn toggle" data-target="toggle_preview">Preview</h2>
+				<h2 class="trn toggle" data-target="toggle_preview" title="Preview">Preview</h2>
 				<div id="toggle_preview"></div>
 			</div>
 			
 			<div class="colors block">
-				<h2 class="trn toggle" data-target="toggle_colors">Colors</h2>
+				<h2 class="trn toggle" data-target="toggle_colors" title="Colors">Colors</h2>
 				<div class="content" id="toggle_colors"></div>
 			</div>
 			
 			<div class="block" id="info_base">
-				<h2 class="trn toggle toggle-full" data-target="toggle_info">Information</h2>
+				<h2 class="trn toggle toggle-full" data-target="toggle_info" title="Information">Information</h2>
 				<div class="content" id="toggle_info"></div>
 			</div>
 			
 			<div class="details block" id="details_base">
-				<h2 class="trn toggle toggle-full" data-target="toggle_details">Layer details</h2>
+				<h2 class="trn toggle toggle-full" data-target="toggle_details" title="Layer Details">Layer Details</h2>
 				<div class="content details-content" id="toggle_details"></div>
 			</div>
 			
@@ -91,10 +94,10 @@
 		</div>
 	</div>
 	<div class="mobile_menu">
-		<button class="left_mobile_menu" id="left_mobile_menu_button" type="button">
+		<button class="left_mobile_menu" id="left_mobile_menu_button" type="button" title="Toggle Menu">
 			<span class="sr_only">Toggle Menu</span>
 		</button>
-		<button class="right_mobile_menu" id="mobile_menu_button" type="button">
+		<button class="right_mobile_menu" id="mobile_menu_button" type="button" title="Toggle Menu">
 			<span class="sr_only">Toggle Menu</span>
 		</button>
 	</div>
