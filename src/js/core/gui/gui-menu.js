@@ -5,12 +5,12 @@
 
 import config from './../../config.js';
 import menuDefinition from './../../config-menu.js';
-import Tools_translate_class from './../../modules/tools/translate.js';
+import ToolsTranslateClass from './../../modules/tools/translate.js';
 
 /**
- * class responsible for rendering main menu
+ * Class responsible for rendering main menu
  */
-class GUI_menu_class {
+class GUIMenuClass {
 
 	constructor() {
 		this.eventSubscriptions = {};
@@ -20,32 +20,35 @@ class GUI_menu_class {
 		this.lastFocusedMenuBarLink = 0;
 		this.dropdownStack = [];
 
-		this.Tools_translate = new Tools_translate_class();
+		this.ToolsTranslate = new ToolsTranslateClass();
 	}
 
-	render_main() {
+	renderMain() {
 		this.menuContainer = document.getElementById('main_menu');
 
 		let menuTemplate = '<ul class="menu_bar" role="menubar" tabindex="0">';
+		
 		for (let i = 0; i < menuDefinition.length; i++) {
 			const item = menuDefinition[i];
 			menuTemplate += this.generate_menu_bar_item_template(item, i);
 		}
+		
 		menuTemplate += '</ul>';
 
 		this.menuContainer.innerHTML = menuTemplate;
 		this.menuBarNode = this.menuContainer.querySelector('[role="menubar"]');
 
-		this.menuContainer.addEventListener('click', (event) => { return this.on_click_menu(event); }, true);
-		this.menuContainer.addEventListener('keydown', (event) => { return this.on_key_down_menu(event); }, true);
-		this.menuBarNode.addEventListener('focus', (event) => { return this.on_focus_menu_bar(event); });
-		this.menuBarNode.addEventListener('blur', (event) => { return this.on_blur_menu_bar(event); });
+		this.menuContainer.addEventListener('click', (event) => { return this.onClickMenu(event); }, true);
+		this.menuContainer.addEventListener('keydown', (event) => { return this.onKeyDownMenu(event); }, true);
+		this.menuBarNode.addEventListener('focus', (event) => { return this.onFocusMenuBar(event); });
+		this.menuBarNode.addEventListener('blur', (event) => { return this.onBlurMenuBar(event); });
 		this.menuBarNode.querySelectorAll('a').forEach((link) => {
-			link.addEventListener('focus', (event) => { return this.on_focus_menu_bar_link(event); });
+			link.addEventListener('focus', (event) => { return this.onFocusMenuBarLink(event); });
 		});
-		document.body.addEventListener('mousedown', (event) => { return this.on_mouse_down_body(event); }, true);
-		document.body.addEventListener('touchstart', (event) => { return this.on_mouse_down_body(event); }, true);
-		window.addEventListener('resize', (event) => { return this.on_resize_window(event); }, true);
+		
+		document.body.addEventListener('mousedown', (event) => { return this.onMouseDownBody(event); }, true);
+		document.body.addEventListener('touchstart', (event) => { return this.onMouseDownBody(event); }, true);
+		window.addEventListener('resize', (event) => { return this.onResizeWindow(event); }, true);
 		
 		document.body.classList.add('loaded');
 		
@@ -58,6 +61,7 @@ class GUI_menu_class {
 		if (!this.eventSubscriptions[eventName]) {
 			this.eventSubscriptions[eventName] = [];
 		}
+		
 		if (!this.eventSubscriptions[eventName].includes(callback)) {
 			this.eventSubscriptions[eventName].push(callback);
 		}
@@ -71,16 +75,16 @@ class GUI_menu_class {
 		}
 	}
 
-	generate_menu_bar_item_template(definition, index) {
+	generateMenuBarItemTemplate(definition, index) {
 		return `
 			<li>
 				<a id="main_menu_0_${index}" role="menuitem" tabindex="-1" aria-haspopup="true" aria-expanded="false"
-					href="javascript:void(0)" data-level="0" data-index="${ index }"><span class="name trn">${ definition.name }</span></a>
+					href="javascript:void(0)" data-level="0" data-index="${ index }" title="${ definition.name }"><span class="name trn">${ definition.name }</span></a>
 			</li>
 		`.trim();
 	}
 
-	generate_menu_dropdown_item_template(definition, level, index) {
+	generateMenuDropdownItemTemplate(definition, level, index) {
 		if (definition.divider) {
 			return `
 				<li role="presentation">
@@ -94,7 +98,7 @@ class GUI_menu_class {
 						href="${ definition.href ? definition.href : 'javascript:void(0)' }"
 						target="${ definition.href ? '_blank' : '_self' }"
 						data-level="${ level }" data-index="${ index }">
-						<span class="name"><span class="trn">${ definition.name }</span>${ definition.ellipsis ? ' ...' : '' }</span>
+						<span class="name" title="${ definition.name } &lpar;${ definition.ellipsis ? ' ...' : '' }&rpar;"><span class="trn">${ definition.name }</span>${ definition.ellipsis ? ' ...' : '' }</span>
 						${ !!definition.shortcut ? `
 							<span class="shortcut"><span class="sr_only">Shortcut Key:</span> ${ definition.shortcut }</span>
 						` : `` }
@@ -104,34 +108,36 @@ class GUI_menu_class {
 		}
 	}
 
-	on_mouse_down_body(event) {
+	onMouseDownBody(event) {
 		const target = event.touches && event.touches.length > 0 ? event.touches[0].target : event.target;
 
 		// Clicked outside of menu; close dropdowns.
 		if (target && !this.menuContainer.contains(target)) {
-			this.close_child_dropdowns(0);
+			this.closeChildDropdowns(0);
 		}
 	}
 
-	on_focus_menu_bar(event) {
+	onFocusMenuBar(event) {
 		if (document.activeElement === this.menuBarNode) {
 			let lastFocusedLink = this.menuBarNode.querySelector(`[data-index="${ this.lastFocusedMenuBarLink }"]`);
+			
 			if (!lastFocusedLink) {
 				lastFocusedLink = this.menuBarNode.querySelector('a');
 			}
+			
 			lastFocusedLink.focus();
 		}
 	}
 
-	on_focus_menu_bar_link(event) {
+	onFocusMenuBarLink(event) {
 		this.lastFocusedMenuBarLink = parseInt(event.target.getAttribute('data-index'), 10) || 0;
 	}
 
-	on_blur_menu_bar(event) {
+	onBlurMenuBar(event) {
 		// TODO
 	}
 
-	on_key_down_menu(event) {
+	onKeyDownMenu(event) {
 		const key = event.key;
 		const activeElement = document.activeElement;
 
@@ -139,34 +145,34 @@ class GUI_menu_class {
 			const linkLevel = parseInt(activeElement.getAttribute('data-level'), 10) || 0;
 			const linkIndex = parseInt(activeElement.getAttribute('data-index'), 10) || 0;
 			const menuParent = activeElement.closest('ul');
+			
 			if (linkLevel === 0) {
 				if (['Right', 'ArrowRight'].includes(event.key)) {
 					let nextLink = menuParent.querySelector(`[data-index="${ linkIndex + 1 }"]`);
+					
 					if (!nextLink) {
 						nextLink = menuParent.querySelector(`[data-index="0"]`);
 					}
+					
 					nextLink.focus();
-				}
-				else if (['Left', 'ArrowLeft'].includes(event.key)) {
+				} else if (['Left', 'ArrowLeft'].includes(event.key)) {
 					let previousLink = menuParent.querySelector(`[data-index="${ linkIndex - 1 }"]`);
+					
 					if (!previousLink) {
 						previousLink = menuParent.querySelector(`[data-index="${ menuParent.querySelectorAll('[data-index]').length - 1 }"]`);
 					}
+					
 					previousLink.focus();
-				}
-				else if (['Down', 'ArrowDown'].includes(event.key)) {
+				} else if (['Down', 'ArrowDown'].includes(event.key)) {
 					if (activeElement.getAttribute('aria-haspopup') === 'true') {
 						event.preventDefault();
 						activeElement.click();
 					}
-				}
-				else if (event.key === 'Home') {
+				} else if (event.key === 'Home') {
 					menuParent.querySelector(`[data-index="0"]`).focus();
-				}
-				else if (event.key === 'End') {
+				} else if (event.key === 'End') {
 					menuParent.querySelector(`[data-index="${ menuParent.querySelectorAll('[data-index]').length - 1 }"]`).focus();
-				}
-				else if ([' ', 'Enter'].includes(event.key)) {
+				} else if ([' ', 'Enter'].includes(event.key)) {
 					event.preventDefault();
 					activeElement.click();
 				}
@@ -174,44 +180,47 @@ class GUI_menu_class {
 				if (['Up', 'ArrowUp'].includes(event.key)) {
 					event.preventDefault();
 					let previousLink = menuParent.querySelector(`[data-index="${ linkIndex - 1 }"]`);
+					
 					if (!previousLink) {
 						previousLink = menuParent.querySelector(`[data-index="${ linkIndex - 2 }"]`); // Skip dividers
 					}
+					
 					if (!previousLink) {
 						previousLink = menuParent.querySelector(`[data-index="${ this.dropdownStack[linkLevel - 1].children.length - 1 }"]`);
 					}
+					
 					previousLink.focus();
-				}
-				else if (['Down', 'ArrowDown'].includes(event.key)) {
+				} else if (['Down', 'ArrowDown'].includes(event.key)) {
 					event.preventDefault();
 					let nextLink = menuParent.querySelector(`[data-index="${ linkIndex + 1 }"]`);
+					
 					if (!nextLink) {
 						nextLink = menuParent.querySelector(`[data-index="${ linkIndex + 2 }"]`); // Skip dividers
 					}
+					
 					if (!nextLink) {
 						nextLink = menuParent.querySelector(`[data-index="0"]`);
 					}
+					
 					nextLink.focus();
-				}
-				else if (['Right', 'ArrowRight'].includes(event.key)) {
+				} else if (['Right', 'ArrowRight'].includes(event.key)) {
 					if (activeElement.getAttribute('aria-haspopup') === 'true') {
 						activeElement.click();
-					}
-					else if (this.dropdownStack.length > 1) {
+					} else if (this.dropdownStack.length > 1) {
 						const opener = this.dropdownStack[linkLevel - 1].opener;
 						opener.click();
 						opener.focus();
-					}
-					else {
+					} else {
 						const menuBarLinkIndex = parseInt(this.dropdownStack[0].opener.getAttribute('data-index'), 10) || 0;
 						let nextLink = this.menuBarNode.querySelector(`[data-index="${ menuBarLinkIndex + 1 }"]`);
+						
 						if (!nextLink) {
 							nextLink = this.menuBarNode.querySelector(`[data-index="0"]`);
 						}
+						
 						nextLink.click();
 					}
-				}
-				else if (['Left', 'ArrowLeft'].includes(event.key)) {
+				} else if (['Left', 'ArrowLeft'].includes(event.key)) {
 					if (this.dropdownStack.length > 1) {
 						const opener = this.dropdownStack[linkLevel - 1].opener;
 						opener.click();
@@ -219,110 +228,113 @@ class GUI_menu_class {
 					} else {
 						const menuBarLinkIndex = parseInt(this.dropdownStack[0].opener.getAttribute('data-index'), 10) || 0;
 						let previousLink = this.menuBarNode.querySelector(`[data-index="${ menuBarLinkIndex - 1 }"]`);
+						
 						if (!previousLink) {
 							previousLink = this.menuBarNode.querySelector(`[data-index="${ this.menuBarNode.querySelectorAll('[data-index]').length - 1 }"]`);
 						}
+						
 						previousLink.click();
 					}
-				}
-				else if (event.key === 'Home') {
+				} else if (event.key === 'Home') {
 					menuParent.querySelector(`[data-index="0"]`).focus();
-				}
-				else if (event.key === 'End') {
+				} else if (event.key === 'End') {
 					menuParent.querySelector(`[data-index="${ this.dropdownStack[linkLevel - 1].children.length - 1 }"]`).focus();
-				}
-				else if ([' ', 'Enter'].includes(event.key)) {
+				} else if ([' ', 'Enter'].includes(event.key)) {
 					event.preventDefault();
 					activeElement.click();
-				}
-				else if (['Esc', 'Escape'].includes(event.key)) {
+				} else if (['Esc', 'Escape'].includes(event.key)) {
 					const opener = this.dropdownStack[linkLevel - 1].opener;
 					opener.click();
 					opener.focus();
-				}
-				else if (event.key === 'Tab') {
+				} else if (event.key === 'Tab') {
 					this.close_child_dropdowns(0);
 				}
 			}
 		}
 	}
 
-	on_click_menu(event) {
+	onClickMenu(event) {
 		const target = event.target.closest('a');
 
 		// Any link in the menu is clicked.
 		if (target && target.tagName === 'A') {
 			const hasPopup = target.getAttribute('aria-haspopup') === 'true';			
 			if (hasPopup) {
-				this.toggle_dropdown(target, event.isTrusted);
+				this.toggleDropdown(target, event.isTrusted);
 			} else {
-				this.trigger_link(target);
+				this.triggerLink(target);
 			}
 		} else {
-			this.close_child_dropdowns(0);
+			this.closeChildDropdowns(0);
 		}
 	}
 
-	on_resize_window(event) {
+	onResizeWindow(event) {
 		if (this.dropdownStack.length > 0) {
 			this.position_dropdowns();
 		}
 	}
 
-	toggle_dropdown(opener, isTrusted) {
+	toggleDropdown(opener, isTrusted) {
 		const linkLevel = parseInt(opener.getAttribute('data-level'), 10) || 0;
 		const linkIndex = parseInt(opener.getAttribute('data-index'), 10) || 0;
+		
 		if (opener.getAttribute('aria-expanded') === 'true') {
 			this.close_child_dropdowns(linkLevel);
 		} else {
 			const parentList = opener.closest('ul');
+			
 			parentList.querySelectorAll('a').forEach((item) => {
 				item.setAttribute('aria-expanded', 'false');
 			});
+			
 			opener.setAttribute('aria-expanded', true);
-			this.create_dropdown(opener, linkLevel, linkIndex, !isTrusted);
+			this.createDropdown(opener, linkLevel, linkIndex, !isTrusted);
 		}
 	}
 
-	trigger_link(link) {
+	triggerLink(link) {
 		const level = parseInt(link.getAttribute('data-level'), 10) || 0;
 		const index = parseInt(link.getAttribute('data-index'), 10) || 0;
 
 		// Find link definition
 		let children = menuDefinition;
+		
 		for (let i = 0; i < level; i++) {
 			const childIndex = this.dropdownStack[i] != null ? this.dropdownStack[i].index : index;
 			children = children[childIndex].children;
 		}
+		
 		let definition = children[index];
 
 		// Close the dropdown
-		this.close_child_dropdowns(0);
+		this.closeChildDropdowns(0);
 
 		// Emit callback events for triggered links
 		if (definition.target) {
 			this.emit('select_target', definition.target, definition);
-		}
-		else if (definition.href) {
+		} else if (definition.href) {
 			this.emit('select_href', definition.href, null);
 		}
 	}
 
-	close_child_dropdowns(level) {
+	closeChildDropdowns(level) {
 		for (let i = this.dropdownStack.length - 1; i >= 0; i--) {
 			if (i >= level) {
 				this.dropdownStack[i].element.parentNode.removeChild(this.dropdownStack[i].element);
 				this.dropdownStack[i].opener.setAttribute('aria-expanded', false);
 			}
 		}
+		
 		this.dropdownStack = this.dropdownStack.slice(0, level);
 	}
 
-	create_dropdown(opener, level, index, focusAfterCreation) {
-		this.close_child_dropdowns(level);
+	createDropdown(opener, level, index, focusAfterCreation) {
+		this.closeChildDropdowns(level);
 
 		// Find child list in the menu definition
 		let children = menuDefinition;
+		
 		for (let i = 0; i <= level; i++) {
 			const childIndex = this.dropdownStack[i] != null ? this.dropdownStack[i].index : index;
 			children = children[childIndex].children;
@@ -335,15 +347,17 @@ class GUI_menu_class {
 		dropdownElement.tabIndex = 0;
 		dropdownElement.setAttribute('aria-labelledby', 'main_menu_' + level + '_' + index);
 		let dropdownTemplate = '';
+		
 		for (let i = 0; i < children.length; i++) {
-			dropdownTemplate += this.generate_menu_dropdown_item_template(children[i], level + 1, i);
+			dropdownTemplate += this.generateMenuDropdownItemTemplate(children[i], level + 1, i);
 		}
+		
 		dropdownElement.innerHTML = dropdownTemplate;
 
 		this.menuContainer.appendChild(dropdownElement);
 
 		if (config.LANG != 'en') {
-			this.Tools_translate.translate(config.LANG, this.menuContainer);
+			this.ToolsTranslate.translate(config.LANG, this.menuContainer);
 		}
 
 		if (focusAfterCreation) {
@@ -357,10 +371,10 @@ class GUI_menu_class {
 			element: dropdownElement
 		});
 
-		this.position_dropdowns();
+		this.positionDropdowns();
 	}
 
-	position_dropdowns() {
+	positionDropdowns() {
 		const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 		const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
@@ -378,27 +392,35 @@ class GUI_menu_class {
 				dropdownElement.style.top = (openerRect.y + openerRect.height) + 'px';
 
 				let left = openerRect.x;
+				
 				if (left + dropdownRect.width > vw) {
 					left = openerRect.x + openerRect.width - dropdownRect.width;
 				}
+				
 				if (left + dropdownRect.width > vw) {
 					left = vw - dropdownRect.width;
 				}
+				
 				if (left < 0) {
 					left = 0;
 				}
+				
 				dropdownElement.style.left = left + 'px';
 			} else {
 				let top = openerRect.y;
+				
 				if (top + dropdownRect.height > vh - this.dropdownMaxHeightMargin) {
 					top = vh - this.dropdownMaxHeightMargin - dropdownRect.height;
 				}
+				
 				dropdownElement.style.top = top + 'px';
 
 				let left = openerRect.x + openerRect.width + 1;
+				
 				if (left + dropdownRect.width > vw) {
 					left = openerRect.x - dropdownRect.width - 1;
 				}
+				
 				if (left < 0) {
 					if (openerRect.x + (openerRect.width / 2) > vw / 2) {
 						left = 1;
@@ -416,4 +438,4 @@ class GUI_menu_class {
 
 }
 
-export default GUI_menu_class;
+export default GUIMenuClass;
