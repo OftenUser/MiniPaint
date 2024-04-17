@@ -1,8 +1,8 @@
-import Helper_class from './../../libs/helpers.js';
-import Dialog_class from './../../libs/popup.js';
-import GUI_colors_class from './../gui/gui-colors.js';
+import HelperClass from './../../libs/helpers.js';
+import DialogClass from './../../libs/popup.js';
+import GUIColorsClass from './../gui/gui-colors.js';
 
-const Helper = new Helper_class();
+const Helper = new HelperClass();
 
 /**
  * This input opens a custom color picker dialog that is more tightly integrated with the application (swatch selection, etc).
@@ -18,22 +18,23 @@ const Helper = new Helper_class();
 		</div>
 	`;
 
-	const on_focus_color_input = (event) => {
+	const onFocusColorInput = (event) => {
 		const $el = $(event.target.closest('.ui_color_input'));
 		$el.trigger('focus');
 	};
 
-	const on_blur_color_input = (event) => {
+	const onBlurColorInput = (event) => {
 		const $el = $(event.target.closest('.ui_color_input'));
 		$el.trigger('blur');
 	};
 
-	const on_click_color_input = (event) => {
+	const onClickColorInput = (event) => {
 		event.preventDefault();
 		const $el = $(event.target.closest('.ui_color_input'));
-		const { value } = $el.data();
-		const POP = new Dialog_class();
-		let colorsDialog = new GUI_colors_class();
+		const {value} = $el.data();
+		const POP = new DialogClass();
+		let colorsDialog = new GUIColorsClass();
+		
 		var settings = {
 			title: 'Color Picker',
 			on_finish() {
@@ -51,8 +52,10 @@ const Helper = new Helper_class();
 				}
 			],
 		};
+		
 		let colorValue;
 		let alpha = 255;
+		
 		if (/^\#[0-9A-F]{8}$/gi.test(value)) {
 			// Hex with alpha
 			colorValue = value.slice(0, 7);
@@ -63,15 +66,17 @@ const Helper = new Helper_class();
 		} else {
 			colorValue = '#000000';
 		}
+		
 		POP.show(settings);
-		colorsDialog.render_main_colors('dialog');
-		colorsDialog.set_color({ hex: colorValue, a: alpha });
+		colorsDialog.renderMainColors('dialog');
+		colorsDialog.setColor({hex: colorValue, a: alpha});
 	};
 
-	const set_value = ($el, value) => {
+	const setValue = ($el, value) => {
 		const trimmedValue = (value + '').trim();
 		let colorValue;
 		let opacity = 0;
+		
 		if (/^\#[0-9A-F]{8}$/gi.test(trimmedValue)) {
 			// Hex with alpha
 			colorValue = trimmedValue.slice(0, 7);
@@ -82,24 +87,27 @@ const Helper = new Helper_class();
 		} else {
 			return;
 		}
-		const { input, overlay } = $el.data();
+		
+		const {input, overlay} = $el.data();
 		overlay.style.opacity = opacity;
 		input.value = colorValue;
-        $el.data('value', trimmedValue);
+        	$el.data('value', trimmedValue);
 	};
 
-	const set_disabled = ($el, disabled) => {
-		const { input } = $el.data();
-        if (disabled) {
-            input.setAttribute('disabled', 'disabled');
-        } else {
-            input.removeAttribute('disabled');
-        }
-        $el.data('disabled', disabled);
+	const setDisabled = ($el, disabled) => {
+		const {input} = $el.data();
+        	if (disabled) {
+            		input.setAttribute('disabled', 'disabled');
+        	} else {
+            		input.removeAttribute('disabled');
+        	}
+		
+        	$el.data('disabled', disabled);
 	};
 
 	$.fn.uiColorInput = function(behavior, ...args) {
 		let returnValues = [];
+		
 		for (let i = 0; i < this.length; i++) {
 			let el = this[i];
 
@@ -115,6 +123,7 @@ const Helper = new Helper_class();
 				const ariaLabeledBy = el.getAttribute('aria-labelledby');
 
 				let $el;
+				
 				if (el.parentNode) {
 					$(el).after(template);
 					const oldEl = el;
@@ -125,6 +134,7 @@ const Helper = new Helper_class();
 					orphanedParent.innerHTML = template;
 					el = orphanedParent.firstElementChild;
 				}
+				
 				this[i] = el;
 				$el = $(el);
 
@@ -134,12 +144,15 @@ const Helper = new Helper_class();
 				if (classList) {
 					el.classList.add(classList);
 				}
+				
 				if (id) {
 					el.setAttribute('id', id);
 				}
+				
 				if (inputId) {
 					input.setAttribute('id', inputId);
 				}
+				
 				if (ariaLabeledBy) {
 					input.setAttribute('aria-labelledby', ariaLabeledBy);
 				}
@@ -152,12 +165,12 @@ const Helper = new Helper_class();
 				});
 
 				$(input)
-					.on('click', on_click_color_input)
-					.on('focus', on_focus_color_input)
-					.on('blur', on_blur_color_input)
+					.on('click', onClickColorInput)
+					.on('focus', onFocusColorInput)
+					.on('blur', onBlurColorInput)
 
-				set_value($el, value);
-				set_disabled($el, disabled);
+				setValue($el, value);
+				setDisabled($el, disabled);
 			}
 			// Behaviors
 			else if (behavior === 'set_value') {
@@ -166,11 +179,9 @@ const Helper = new Helper_class();
                 if ($el.data('value') !== newValue) {
                     set_value($(el), newValue);
                 }
-            }
-            else if (behavior === 'get_value') {
+            } else if (behavior === 'getValue') {
                 returnValues.push($(el).data('value'));
-            }
-            else if (behavior === 'get_id') {
+            } else if (behavior === 'getID') {
                 returnValues.push($(el).data('id'));
             }
 		}
