@@ -1,6 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-// Get a unique id to identify this tab's history in the database
+// Get a unique ID to identify this tab's history in the database
 let tabUuid;
 try {
     tabUuid = sessionStorage.getItem('history_tab_uuid');
