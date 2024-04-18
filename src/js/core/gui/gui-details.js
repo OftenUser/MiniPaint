@@ -5,12 +5,12 @@
 
 import app from './../../app.js';
 import config from './../../config.js';
-import Dialog_class from './../../libs/popup.js';
-import Text_class from './../../tools/text.js';
-import Base_layers_class from "../base-layers";
-import Tools_settings_class from './../../modules/tools/settings.js';
-import Helper_class from './../../libs/helpers.js';
-import Tools_translate_class from './../../modules/tools/translate.js';
+import DialogClass from './../../libs/popup.js';
+import TextClass from './../../tools/text.js';
+import BaseLayersClass from "../base-layers";
+import ToolsSettingsClass from './../../modules/tools/settings.js';
+import HelperClass from './../../libs/helpers.js';
+import ToolsTranslateClass from './../../modules/tools/translate.js';
 
 var template = `
 	<div class="row">
@@ -51,7 +51,7 @@ var template = `
 	<div id="text_detail_params">
 		<div class="row center">
 			<span class="trn label">&nbsp;</span>
-			<button type="button" class="trn dots" id="detail_param_text">Edit text...</button>
+			<button type="button" class="trn dots" id="detail_param_text" title="Edit Text">Edit Text</button>
 		</div>
 		<div class="row">
 			<span class="trn label" title="Resize Boundary">Bounds:</span>
@@ -68,44 +68,44 @@ var template = `
 			</select>
 		</div>
 		<div class="row" hidden> <!-- Future implementation -->
-			<span class="trn label">Direction:</span>
+			<span class="trn label" title="Direction">Direction:</span>
 			<select id="detail_param_text_direction">
-				<option value="ltr">Left to Right</option>
-				<option value="rtl">Right to Left</option>
-				<option value="ttb">Top to Bottom</option>
-				<option value="btt">Bottom to Top</option>
+				<option value="ltr" title="Left To Right">Left To Right</option>
+				<option value="rtl" title="Right To Left">Right To Left</option>
+				<option value="ttb" title="Top To Bottom">Top To Bottom</option>
+				<option value="btt" title="Bottom To Top">Bottom To Top</option>
 			</select>
 		</div>
 		<div class="row" hidden> <!-- Future implementation -->
-			<span class="trn label">Wrap:</span>
+			<span class="trn label" title="Wrap">Wrap:</span>
 			<select id="detail_param_wrap_direction">
-				<option value="ltr">Left to Right</option>
-				<option value="rtl">Right to Left</option>
-				<option value="ttb">Top to Bottom</option>
-				<option value="btt">Bottom to Top</option>
+				<option value="ltr" title="Left To Right">Left To Right</option>
+				<option value="rtl" title="Right To Left">Right To Left</option>
+				<option value="ttb" title="Top To Bottom">Top To Bottom</option>
+				<option value="btt" title="Bottom To Top">Bottom To Top</option>
 			</select>
 		</div>
 		<div class="row">
-			<span class="trn label">Wrap At:</span>
+			<span class="trn label" title="Wrap At">Wrap At:</span>
 			<select id="detail_param_wrap">
-				<option value="letter">Word + Letter</option>
-				<option value="word">Word</option>
+				<option value="letter" title="Word + Letter">Word + Letter</option>
+				<option value="word" title="Word">Word</option>
 			</select>
 		</div>
 		<div class="row">
-			<span class="trn label" title="Horizontal Alignment">H. Align:</span>
+			<span class="trn label" title="Horizontal Alignment">Horizontal Alignment:</span>
 			<select id="detail_param_halign">
-				<option value="left">Left</option>
-				<option value="center">Center</option>
-				<option value="right">Right</option>
+				<option value="left" title="Left">Left</option>
+				<option value="center" title="Center">Center</option>
+				<option value="right" title="Right">Right</option>
 			</select>
 		</div>
 		<div class="row" hidden> <!-- Future implementation -->
-			<span class="trn label" title="Vertical Alignment">V. Align:</span>
+			<span class="trn label" title="Vertical Alignment">Vertical Alignment:</span>
 			<select id="detail_param_valign">
-				<option value="top">Top</option>
-				<option value="middle">Middle</option>
-				<option value="bottom">Bottom</option>
+				<option value="top" title="Top">Top</option>
+				<option value="middle" title="Middle">Middle</option>
+				<option value="bottom" title="Bottom">Bottom</option>
 			</select>
 		</div>
 	<div>
@@ -114,69 +114,69 @@ var template = `
 /**
  * GUI class responsible for rendering selected layer details block on right sidebar
  */
-class GUI_details_class {
+class GUIDetailsClass {
 
 	constructor() {
-		this.POP = new Dialog_class();
-		this.Text = new Text_class();
-		this.Base_layers = new Base_layers_class();
-		this.Tools_settings = new Tools_settings_class();
-		this.Helper = new Helper_class();
-		this.layer_details_active = false;
-		this.Tools_translate = new Tools_translate_class();
+		this.POP = new DialogClass();
+		this.Text = new TextClass();
+		this.BaseLayers = new BaseLayersClass();
+		this.ToolsSettings = new ToolsSettingsClass();
+		this.Helper = new HelperClass();
+		this.layerDetailsActive = false;
+		this.ToolsTranslate = new ToolsTranslateClass();
 	}
 
-	render_main_details() {
+	renderMainDetails() {
 		document.getElementById('toggle_details').innerHTML = template;
+		
 		if (config.LANG != 'en') {
-			this.Tools_translate.translate(config.LANG, document.getElementById('toggle_details'));
+			this.ToolsTranslate.translate(config.LANG, document.getElementById('toggle_details'));
 		}
-		this.render_details(true);
+		
+		this.renderDetails(true);
 	}
 
-	render_details(events = false) {
-		this.render_general('x', events);
-		this.render_general('y', events);
-		this.render_general('width', events);
-		this.render_general('height', events);
+	renderDetails(events = false) {
+		this.renderGeneral('x', events);
+		this.renderGeneral('y', events);
+		this.renderGeneral('width', events);
+		this.renderGeneral('height', events);
 
-		this.render_general('rotate', events);
-		this.render_general('opacity', events);
-		this.render_color(events);
-		this.render_reset(events);
+		this.renderGeneral('rotate', events);
+		this.renderGeneral('opacity', events);
+		this.renderColor(events);
+		this.renderReset(events);
 
-		//text - special case
+		// Text - Special case
 		if (config.layer != undefined && config.layer.type == 'text') {
 			document.getElementById('text_detail_params').style.display = 'block';
 			document.getElementById('detail_color').closest('.row').style.display = 'none';
-		}
-		else{
+		} else {
 			document.getElementById('text_detail_params').style.display = 'none';
 
 			if (config.layer != undefined && (config.layer.color === null || config.layer.type == 'image')) {
-				//hide color
+				// Hide color
 				document.getElementById('detail_color').closest('.row').style.display = 'none';
-			}
-			else {
-				//show color
+			} else {
+				// Show color
 				document.getElementById('detail_color').closest('.row').style.display = 'block';
 			}
 		}
 
-		//add params
-		this.render_more_parameters();
+		// Add params
+		this.renderMoreParameters();
 
-		this.render_text(events);
-		this.render_general_select_param('boundary', events);
-		this.render_general_select_param('kerning', events);
-		this.render_general_select_param('text_direction', events);
-		this.render_general_select_param('wrap', events);
-		this.render_general_select_param('wrap_direction', events);
-		this.render_general_select_param('halign', events);
-		this.render_general_select_param('valign', events);
+		this.renderText(events);
+		this.renderGeneralSelectParam('boundary', events);
+		this.renderGeneralSelectParam('kerning', events);
+		this.renderGeneralSelectParam('text_direction', events);
+		this.renderGeneralSelectParam('wrap', events);
+		this.renderGeneralSelectParam('wrap_direction', events);
+		this.renderGeneralSelectParam('halign', events);
+		this.renderGeneralSelectParam('valign', events);
 	}
 
-	render_general(key, events) {
+	renderGeneral(key, events) {
 		var layer = config.layer;
 		var _this = this;
 		var units = this.Tools_settings.get_setting('default_units');
@@ -188,128 +188,130 @@ class GUI_details_class {
 			if (layer[key] == null) {
 				target.value = '';
 				target.disabled = true;
-			}
-			else {
+			} else {
 				var value = layer[key];
 
-				if(key == 'x' || key == 'y' || key == 'width' || key == 'height'){
-					//convert units
-					value = this.Helper.get_user_unit(value, units, resolution);
-				}
-				else {
+				if (key == 'x' || key == 'y' || key == 'width' || key == 'height') {
+					// Convert units
+					value = this.Helper.getUserUnit(value, units, resolution);
+				} else {
 					value = Math.round(value);
 				}
 
-				//set
+				// Set
 				target.value = value;
 				target.disabled = false;
 			}
 		}
 
 		if (events) {
-			//events
+			// Events
 			var target = document.getElementById('detail_' + key);
-			if(target == undefined){
-				console.log('Error: missing details event target ' + 'detail_' + key);
+			
+			if (target == undefined) {
+				console.log('Error: Missing details event target ' + 'detail_' + key);
 				return;
 			}
-			let focus_value = null;
-			target.addEventListener('focus', function (e) {
-				focus_value = parseFloat(this.value);
+			
+			let focusValue = null;
+			
+			target.addEventListener('focus', function(e) {
+				focusValue = parseFloat(this.value);
 			});
-			target.addEventListener('blur', function (e) {
-				if(key == 'x' || key == 'y' || key == 'width' || key == 'height'){
-					//convert units
-					var value = _this.Helper.get_internal_unit(this.value, units, resolution);
-				}
-				else {
+			
+			target.addEventListener('blur', function(e) {
+				if (key == 'x' || key == 'y' || key == 'width' || key == 'height') {
+					// Convert units
+					var value = _this.Helper.getInternalUnit(this.value, units, resolution);
+				} else {
 					var value = parseInt(this.value);
 				}
-				var layer = _this.Base_layers.get_layer(e.target.dataset.layer);
-				layer[key] = focus_value;
-				if (focus_value !== value) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(layer.id, {
+				
+				var layer = _this.BaseLayers.getLayer(e.target.dataset.layer);
+				layer[key] = focusValue;
+				
+				if (focusValue !== value) {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(layer.id, {
 								[key]: value
 							})
 						])
 					);
 				}
 			});
-			target.addEventListener('change', function (e) {
-				if(key == 'x' || key == 'y' || key == 'width' || key == 'height'){
-					//convert units
+			
+			target.addEventListener('change', function(e) {
+				if (key == 'x' || key == 'y' || key == 'width' || key == 'height') {
+					// Convert units
 					var value = _this.Helper.get_internal_unit(this.value, units, resolution);
-				}
-				else {
+				} else {
 					var value = parseInt(this.value);
 				}
 				
-				if(this.min != undefined && this.min != '' && value < this.min){
+				if (this.min != undefined && this.min != '' && value < this.min) {
 					document.getElementById('detail_opacity').value = value;
 					value = this.min;
 				}
-				if(this.max != undefined && this.min != '' && value > this.max){
+				if (this.max != undefined && this.min != '' && value > this.max) {
 					document.getElementById('detail_opacity').value = value;
 					value = this.max;
 				}
 				
 				config.layer[key] = value;
-				config.need_render = true;
+				config.needRender = true;
 			});
-			target.addEventListener('keyup', function (e) {
-				//for edge....
+			
+			target.addEventListener('keyup', function(e) {
+				// For edge....
 				if (e.keyCode != 13) {
 					return;
 				}
 
-				if(key == 'x' || key == 'y' || key == 'width' || key == 'height'){
-					//convert units
-					var value = _this.Helper.get_internal_unit(this.value, units, resolution);
-				}
-				else {
+				if (key == 'x' || key == 'y' || key == 'width' || key == 'height') {
+					// Convert units
+					var value = _this.Helper.getInternalUnit(this.value, units, resolution);
+				} else {
 					var value = parseInt(this.value);
 				}
 				
-				if(this.min != undefined && this.min != '' && value < this.min){
+				if (this.min != undefined && this.min != '' && value < this.min) {
 					document.getElementById('detail_opacity').value = value;
 					value = this.min;
 				}
-				if(this.max != undefined && this.min != '' && value > this.max){
+				
+				if (this.max != undefined && this.min != '' && value > this.max) {
 					document.getElementById('detail_opacity').value = value;
 					value = this.max;
 				}
 				
 				config.layer[key] = value;
-				config.need_render = true;
+				config.needRender = true;
 			});
 		}
 	}
 
-	render_general_param(key, events) {
+	renderGeneralParam(key, events) {
 		var layer = config.layer;
 
 		if (layer != undefined) {
 			var target = document.getElementById('detail_param_' + key);
+			
 			if (layer.params[key] == null) {
 				target.value = '';
 				target.disabled = true;
-			}
-			else {
+			} else {
 				if (typeof layer.params[key] == 'boolean') {
-					//boolean
-					if(target.tagName == 'BUTTON'){
-						if(layer.params[key]){
+					// Boolean
+					if (target.tagName == 'BUTTON') {
+						if (layer.params[key]) {
 							target.classList.add('active');
-						}
-						else{
+						} else {
 							target.classList.remove('active');
 						}
 					}
-				}
-				else {
-					//common
+				} else {
+					// Common
 					target.value = layer.params[key];
 				}
 				target.disabled = false;
@@ -317,46 +319,51 @@ class GUI_details_class {
 		}
 
 		if (events) {
-			//events
+			// Events
 			var target = document.getElementById('detail_param_' + key);
-			let focus_value = null;
-			target.addEventListener('focus', function (e) {
-				focus_value = parseInt(this.value);
+			let focusValue = null;
+			
+			target.addEventListener('focus', function(e) {
+				focusValue = parseInt(this.value);
 			});
-			target.addEventListener('blur', function (e) {
+			
+			target.addEventListener('blur', function(e) {
 				var value = parseInt(this.value);
-				config.layer.params[key] = focus_value;
-				let params_copy = JSON.parse(JSON.stringify(config.layer.params));
-				params_copy[key] = value;
-				if (focus_value !== value) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
-								params: params_copy
+				config.layer.params[key] = focusValue;
+				let paramsCopy = JSON.parse(JSON.stringify(config.layer.params));
+				paramsCopy[key] = value;
+				
+				if (focusValue !== value) {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
+								params: paramsCopy
 							})
 						])
 					);
 				}
 			});
-			target.addEventListener('change', function (e) {
+			
+			target.addEventListener('change', function(e) {
 				var value = parseInt(this.value);
 				config.layer.params[key] = value;
-				config.need_render = true;
-				config.need_render_changed_params = true;
-
+				config.needRender = true;
+				config.needRenderChangedParams = true;
 			});
-			target.addEventListener('click', function (e) {
+			
+			target.addEventListener('click', function(e) {
 				if (typeof config.layer.params[key] != 'boolean')
 					return;
+				
 				this.classList.toggle('active');
 				config.layer.params[key] = !config.layer.params[key];
-				config.need_render = true;
-				config.need_render_changed_params = true;
+				config.needRender = true;
+				config.needRenderChangedParams = true;
 			});
 		}
 	}
 
-	render_general_select_param(key, events){
+	renderGeneralSelectParam(key, events) {
 		var layer = config.layer;
 
 		if (layer != undefined) {
@@ -365,54 +372,59 @@ class GUI_details_class {
 			if (layer.params[key] == null) {
 				target.value = '';
 				target.disabled = true;
-			}
-			else {
-				if(typeof layer.params[key] == 'object')
-					target.value = layer.params[key].value; //legacy
+			} else {
+				if (typeof layer.params[key] == 'object')
+					target.value = layer.params[key].value; // Legacy
 				else
 					target.value = layer.params[key];
+				
 				target.disabled = false;
 			}
 		}
 
 		if (events) {
-			//events
+			// Events
 			var target = document.getElementById('detail_param_' + key);
-			let focus_value = null;
-			target.addEventListener('focus', function (e) {
-				focus_value = this.value;
+			let focusValue = null;
+			
+			target.addEventListener('focus', function(e) {
+				focusValue = this.value;
 			});
-			target.addEventListener('blur', function (e) {
+			
+			target.addEventListener('blur', function(e) {
 				var value = this.value;
-				config.layer.params[key] = focus_value;
-				let params_copy = JSON.parse(JSON.stringify(config.layer.params));
-				params_copy[key] = value;
-				if (focus_value !== value) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
-								params: params_copy
+				config.layer.params[key] = focusValue;
+				let paramsCopy = JSON.parse(JSON.stringify(config.layer.params));
+				paramsCopy[key] = value;
+				
+				if (focusValue !== value) {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
+								params: paramsCopy
 							})
 						])
 					);
 				}
 			});
-			target.addEventListener('change', function (e) {
+			
+			target.addEventListener('change', function(e) {
 				var value = this.value;
 				config.layer.params[key] = value;
-				config.need_render = true;
-				config.need_render_changed_params = true;
+				config.needRender = true;
+				config.needRenderChangedParams = true;
 			});
 		}
 	}
 
 	/**
-	 * item: color
+	 * Item: Color
 	 */
-	render_color(events) {
+	renderColor(events) {
 		var layer = config.layer;
 
 		let $colorInput;
+		
 		if (events) {
 			$colorInput = $(document.getElementById('detail_color')).uiColorInput();
 		} else {
@@ -424,18 +436,21 @@ class GUI_details_class {
 		}
 
 		if (events) {
-			//events
-			let focus_value = null;
-			$colorInput.on('focus', function (e) {
-				focus_value = $colorInput.uiColorInput('get_value');
+			// Events
+			let focusValue = null;
+			
+			$colorInput.on('focus', function(e) {
+				focusValue = $colorInput.uiColorInput('get_value');
 			});
-			$colorInput.on('change', function (e) {
+			
+			$colorInput.on('change', function(e) {
 				const value = $colorInput.uiColorInput('get_value');
 				config.layer.color = focus_value;
-				if (focus_value !== value) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
+				
+				if (focusValue !== value) {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
 								color: value
 							})
 						])
@@ -446,74 +461,77 @@ class GUI_details_class {
 	}
 
 	/**
-	 * item: size reset button
+	 * Item: Size reset button
 	 */
-	render_reset(events) {
+	renderReset(events) {
 		var layer = config.layer;
 
 		if (layer != undefined) {
-			//size
-			if (layer.width_original != null) {
+			// Size
+			if (layer.widthOriginal != null) {
 				document.getElementById('reset_size').classList.remove('hidden');
-			}
-			else {
+			} else {
 				document.getElementById('reset_size').classList.add('hidden');
 			}
 		}
 
 		if (events) {
-			//events
-			document.getElementById('reset_x').addEventListener('click', function (e) {
+			// Events
+			document.getElementById('reset_x').addEventListener('click', function(e) {
 				if (config.layer.x) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
 								x: 0
 							})
 						])
 					);
 				}
 			});
-			document.getElementById('reset_y').addEventListener('click', function (e) {
+			
+			document.getElementById('reset_y').addEventListener('click', function(e) {
 				if (config.layer.y) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
 								y: 0
 							})
 						])
 					);
 				}
 			});
-			document.getElementById('reset_size').addEventListener('click', function (e) {
-				if (config.layer.width !== config.layer.width_original
-					|| config.layer.height !== config.layer.height_original) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
-								width: config.layer.width_original,
-								height: config.layer.height_original
+			
+			document.getElementById('reset_size').addEventListener('click', function(e) {
+				if (config.layer.width !== config.layer.widthOriginal
+					|| config.layer.height !== config.layer.heightOriginal) {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
+								width: config.layer.widthOriginal,
+								height: config.layer.heightOriginal
 							})
 						])
 					);
 				}
 			});
-			document.getElementById('reset_rotate').addEventListener('click', function (e) {
+			
+			document.getElementById('reset_rotate').addEventListener('click', function(e) {
 				if (config.layer.rotate) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
 								rotate: 0
 							})
 						])
 					);
 				}
 			});
-			document.getElementById('reset_opacity').addEventListener('click', function (e) {
+			
+			document.getElementById('reset_opacity').addEventListener('click', function(e) {
 				if (config.layer.opacity != 100) {
-					app.State.do_action(
-						new app.Actions.Bundle_action('change_layer_details', 'Change Layer Details', [
-							new app.Actions.Update_layer_action(config.layer.id, {
+					app.State.doAction(
+						new app.Actions.BundleAction('change_layer_details', 'Change Layer Details', [
+							new app.Actions.UpdateLayerAction(config.layer.id, {
 								opacity: 100
 							})
 						])
@@ -524,72 +542,74 @@ class GUI_details_class {
 	}
 
 	/**
-	 * item: text
+	 * Item: Text
 	 */
-	render_text(events) {
+	renderText(events) {
 		if (events) {
-			//events
-			document.getElementById('detail_param_text').addEventListener('click', function (e) {
+			// Events
+			document.getElementById('detail_param_text').addEventListener('click', function(e) {
 				document.querySelector('#tools_container #text').click();
 				document.getElementById('text_tool_keyboard_input').focus();
-				config.need_render = true;
+				config.needRender = true;
 			});
 		}
 	}
 
-	render_more_parameters() {
+	renderMoreParameters() {
 		var _this = this;
-		var target_id = "parameters_container";
-		const itemContainer = document.getElementById(target_id);
+		var targetID = "parameters_container";
+		const itemContainer = document.getElementById(targetID);
 
-		if(this.layer_details_active == true){
+		if (this.layerDetailsActive == true) {
 			return;
 		}
 
 		itemContainer.innerHTML = "";
 
-		if(!config.layer || typeof config.layer.params == 'undefined' || config.layer.type == 'text') {
+		if (!config.layer || typeof config.layer.params == 'undefined' || config.layer.type == 'text') {
 			return;
 		}
 
-		//find layer parameters settings
-		var params_config = null;
+		// Find layer parameters settings
+		var paramsConfig = null;
+		
 		for (var i in config.TOOLS) {
 			if (config.TOOLS[i].name == config.layer.type) {
-				params_config =  config.TOOLS[i];
+				paramsConfig =  config.TOOLS[i];
 			}
 		}
-		if(params_config == null){
+		
+		if (paramsConfig == null) {
 			return;
 		}
 
-		for (var k in params_config.attributes) {
-			var item = params_config.attributes[k];
+		for (var k in paramsConfig.attributes) {
+			var item = paramsConfig.attributes[k];
 
-			//hide some fields, in future name should start with underscore
-			if(params_config.name == 'rectangle' && k == 'square'
-				|| params_config.name == 'ellipse' && k == 'circle'
-				|| params_config.name == 'pencil' && k == 'pressure'
-				|| params_config.name == 'pencil' && k == 'size'){
+			// Hide some fields, in future name should start with underscore
+			if (paramsConfig.name == 'rectangle' && k == 'square'
+				|| paramsConfig.name == 'ellipse' && k == 'circle'
+				|| paramsConfig.name == 'pencil' && k == 'pressure'
+				|| paramsConfig.name == 'pencil' && k == 'size') {
 				continue;
 			}
 
-			//row
-			let item_row = document.createElement('div');
-			item_row.className = 'row';
-			itemContainer.appendChild(item_row);
+			// Row
+			let itemRow = document.createElement('div');
+			itemRow.className = 'row';
+			itemContainer.appendChild(itemRow);
 
-			//title
+			// Title
 			var title = k[0].toUpperCase() + k.slice(1);
 			title = title.replace("_", " ");
-			let item_title = document.createElement('span');
-			item_title.className = 'trn label';
-			item_title.innerHTML = title;
-			item_row.appendChild(item_title);
+			let itemTitle = document.createElement('span');
+			itemTitle.className = 'trn label';
+			itemTitle.innerHTML = title;
+			itemRow.appendChild(itemTitle);
 
-			//value
+			// Value
 			if (typeof item == 'boolean' || (typeof item == 'object' && typeof item.value == 'boolean')) {
-				//boolean - true, false
+				// Boolean - True, False
 
 				const elementInput = document.createElement('button');
 				elementInput.type = 'button';
@@ -597,96 +617,103 @@ class GUI_details_class {
 				elementInput.innerHTML = title;
 
 				elementInput.dataset.key = k;
-				item_row.appendChild(elementInput);
+				itemRow.appendChild(elementInput);
 
 				let value = config.layer.params[k];
 				elementInput.setAttribute('aria-pressed', value);
 
-				//events
+				// Events
 				elementInput.addEventListener('click', function (e) {
-					//on leave
+					// On leave
 					let layer = config.layer;
 					let key = this.dataset.key;
-					let new_value = elementInput.getAttribute('aria-pressed') !== 'true';
+					let newValue = elementInput.getAttribute('aria-pressed') !== 'true';
 					let params = JSON.parse(JSON.stringify(config.layer.params));
-					params[key] = new_value;
+					params[key] = newValue;
 
-					app.State.do_action(
-						new app.Actions.Update_layer_action(layer.id, {
+					app.State.doAction(
+						new app.Actions.UpdateLayerAction(layer.id, {
 							params: params
 						})
 					);
 				});
-			}
-			else if (typeof item == 'number' || (typeof item == 'object' && typeof item.value == 'number')) {
-				//numbers
-
+			} else if (typeof item == 'number' || (typeof item == 'object' && typeof item.value == 'number')) {
+				// Numbers
 				const elementInput = document.createElement('input');
 				elementInput.type = 'number';
 				elementInput.dataset.key = k;
-				item_row.appendChild(elementInput);
+				itemRow.appendChild(elementInput);
 
 				let min = 1;
 				let max = k === 'power' ? 100 : 999;
 				let step = null;
 				let value = config.layer.params[k];
+				
 				if (typeof item == 'object') {
 					value = item.value;
+					
 					if (item.min != null) {
 						min = item.min;
 					}
+					
 					if (item.max != null) {
 						max = item.max;
 					}
+					
 					if (item.step != null) {
 						step = item.step;
 					}
 				}
+				
 				elementInput.setAttribute('min', min);
 				elementInput.setAttribute('max', max);
+				
 				if (item.step != null) {
 					elementInput.setAttribute('step', step);
 				}
+				
 				elementInput.setAttribute('value', config.layer.params[k]);
 
-				//events
-				let focus_value = null;
-				elementInput.addEventListener('focus', function (e) {
-					focus_value = parseFloat(this.value);
+				// Events
+				let focusValue = null;
+				
+				elementInput.addEventListener('focus', function(e) {
+					focusValue = parseFloat(this.value);
 					_this.layer_details_active = true;
 				});
-				elementInput.addEventListener('blur', function (e) {
-					//on leave
-					_this.layer_details_active = false;
+				
+				elementInput.addEventListener('blur', function(e) {
+					// On leave
+					_this.layerDetailsActive = false;
 					let layer = config.layer;
 					let key = this.dataset.key;
-					let new_value = parseInt(this.value);
+					let newValue = parseInt(this.value);
 					let params = JSON.parse(JSON.stringify(config.layer.params));
-					params[key] = new_value;
+					params[key] = newValue;
 
-					if (focus_value !== new_value) {
-						app.State.do_action(
-							new app.Actions.Update_layer_action(layer.id, {
+					if (focusValue !== newValue) {
+						app.State.doAction(
+							new app.Actions.UpdateLayerAction(layer.id, {
 								params: params
 							})
 						);
 					}
 				});
-				elementInput.addEventListener('change', function (e) {
-					//on change - lots of events here in short time
+				
+				elementInput.addEventListener('change', function(e) {
+					// On change - Lots of events here in short time
 					let key = this.dataset.key;
-					let new_value = parseInt(this.value);
+					let newValue = parseInt(this.value);
 
-					config.layer.params[key] = new_value;
-					config.need_render = true;
+					config.layer.params[key] = newValue;
+					config.needRender = true;
 				});
-			}
-			else if (typeof item == 'string' && item[0] == '#') {
-				//color
-
+			} else if (typeof item == 'string' && item[0] == '#') {
+				// Color
 				var elementInput = document.createElement('input');
 				elementInput.type = 'color';
-				let focus_value = null;
+				let focusValue = null;
+				
 				const $colorInput = $(elementInput).uiColorInput({
 						id: k,
 						value: item
@@ -694,26 +721,27 @@ class GUI_details_class {
 					.on('change', () => {
 						let layer = config.layer;
 						let key = $colorInput.uiColorInput('get_id');
-						let new_value = $colorInput.uiColorInput('get_value');
+						let newValue = $colorInput.uiColorInput('get_value');
 						let params = JSON.parse(JSON.stringify(config.layer.params));
 						params[key] = new_value;
 
-						app.State.do_action(
-							new app.Actions.Update_layer_action(layer.id, {
+						app.State.doAction(
+							new app.Actions.UpdateLayerAction(layer.id, {
 								params: params
 							})
 						);
 					});
+				
 				$colorInput.uiColorInput('set_value', config.layer.params[k]);
 
-				item_row.appendChild($colorInput[0]);
+				itemRow.appendChild($colorInput[0]);
 			}
 			else {
-				alertify.error('Error: unsupported attribute type:' + typeof item + ', ' + k);
+				alertify.error('Error: Unsupported attribute type:' + typeof item + ', ' + k);
 			}
 		}
 	}
 
 }
 
-export default GUI_details_class;
+export default GUIDetailsClass;
