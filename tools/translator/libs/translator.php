@@ -6,7 +6,7 @@ require_once(__DIR__ . '/GoogleTranslate.php');
 use \Statickidz\GoogleTranslate;
 
 /**
- * translator scans javascript, html files, extracts strings and generate translation with json format.
+ * Translator scans JavaScript, HTML files, extracts strings and generate translation with JSON format.
  */
 class Translator {
 
@@ -15,43 +15,45 @@ class Translator {
 	public $translations;
 
 	/**
-	 * scan external resources
+	 * Scan external resources
 	 *
 	 * @throws Exception
 	 */
 	public function scan() {
 		global $SOURCE_DIRS;
+		
 		if (count($SOURCE_DIRS) == 0)
 			throw new Exception('empty settings: $SOURCE_DIRS');
 
 		foreach ($SOURCE_DIRS as $dir) {
 			if (strpos($dir, '\\') !== false) {
-				//windows url
+				// Windows URL
 				$dir = str_replace('/', '\\', $dir);
 			}
+			
 			$dir = realpath($dir);
 
 			if (is_dir($dir)) {
-				//directory
+				// Directory
 				$rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+				
 				foreach ($rii as $file) {
 					if ($file->isDir()) {
 						continue;
 					}
+					
 					$this->files[] = $file->getPathname();
 				}
-			}
-			else if (is_file($dir)) {
+			} else if (is_file($dir)) {
 				$this->files[] = $dir;
-			}
-			else {
-				throw new Exception('can not import object: ' . $dir);
+			} else {
+				throw new Exception('Can not import object: ' . $dir);
 			}
 		}
 	}
 
 	/**
-	 * extracts strings from files
+	 * Extracts strings from files
 	 *
 	 * @throws Exception
 	 */
@@ -59,22 +61,23 @@ class Translator {
 		$this->strings = array();
 		foreach ($this->files as $file) {
 			$content = file_get_contents($file);
+			
 			if ($content == '')
-				throw new Exception('can not get file content: ' . $content);
+				throw new Exception('Can not get file content: ' . $content);
 
 			$strings = array();
 
-			//drop svg
+			// Drop SVG
 			$content = preg_replace('|<path.*/>|i', '', $content);
 
-			//drop exceptions
+			// Drop exceptions
 			$content = preg_replace('|\/\/no-translate BEGIN[\s\S]+?\/\/no-translate END|mi', '', $content);
 
-			//drop
+			// Drop
 			$content = stripslashes($content);
 
 			if (stripos($file, '.js') !== false) {
-				//json
+				// JSON
 
 				$ignore_matches = [
 					'\.addEventListener',
@@ -83,24 +86,26 @@ class Translator {
 					'\.font',
 					'Path2D\(',
 				];
+				
 				foreach ($ignore_matches as $ignore_match) {
 					$content = preg_replace('/' . $ignore_match . '.*/', '', $content);
 				}
 
 				$content = preg_replace('|[\r\n][ \t]*//.*|', "\n", $content);
 
-				//extract between ' '
+				// Extract between ' '
 				$out = array();
 				preg_match_all("/[']([^']*)[']/", $content, $out);
 				$strings = array_merge($strings, $out[1]);
 
-				//extract between " "
+				// Extract between " "
 				$out = array();
 				preg_match_all('/["]([^"]*)["]/', $content, $out);
 				$strings = array_merge($strings, $out[1]);
 			}
+			
 			if (stripos($file, '.htm') !== false || true) {
-				//html
+				// HTML
 				$ignore_attributes = [
 					'dir',
 					'lang',
@@ -120,15 +125,16 @@ class Translator {
 					'src',
 					'aria-label',
 				];
+				
 				foreach ($ignore_attributes as $ignore_attribute) {
 					$content = preg_replace('/' . $ignore_attribute . '="[^"]*"/', '', $content);
 				}
 
-				//extract between " "
+				// Extract between " "
 				$out = array();
 				preg_match_all('/["]([^"]*)["]/', $content, $out);
 				//$strings = array_merge($strings, $out[1]);
-				//extract between > <
+				// Extract between > <
 				$out = array();
 				preg_match_all('|>([^<]{1,200})<[^ ]|', $content, $out);
 				$strings = array_merge($strings, $out[1]);
@@ -138,7 +144,7 @@ class Translator {
 				if (trim($string) == '' || substr($string, 0, 2) == './')
 					continue;
 
-				//remove tags
+				// Remove tags
 				$string = preg_replace('/<[^>]*>/', ' ', $string);
 				$string = trim($string);
 
@@ -151,54 +157,64 @@ class Translator {
 	}
 
 	/**
-	 * filters out some strings
+	 * Filters out some strings
 	 */
 	public function filter() {
 		$copy = $this->strings;
 		$this->strings = array();
+		
 		foreach ($copy as $string) {
 			$string = trim($string);
+			
 			if (is_numeric($string)) {
-				//number
+				// Number
 				continue;
 			}
+			
 			if (strlen($string) < 2) {
-				//too short
+				// Too short
 				continue;
 			}
+			
 			if (preg_replace("/[^A-Z0-9]+/", "", $string[0]) == '') {
-				//first letter must be common uppercase letter or number
+				// First letter must be common uppercase letter or number
 				continue;
 			}
+			
 			if (is_numeric($string[0]) && strpos($string, ' ') === false) {
-				//if first letter is number - try to skip some
+				// If first letter is number - Try to skip some
 				continue;
 			}
+			
 			if (strpos($string, '(') !== false && strpos($string, ')') !== false && strpos($string, '.') !== false) {
-				//function, not string
+				// Function, not string
 				continue;
 			}
+			
 			if (strpos($string, "\n") !== false || strpos($string, "\r") !== false) {
-				//multi-line
+				// Multi-line
 				continue;
 			}
+			
 			if (preg_replace("/[^a-z]+/", "", $string) == '') {
-				//all caps - not translatable
+				// All caps - Not translatable
 				continue;
 			}
+			
 			if (strlen($string) > 30 && strpos($string, " ") === false) {
-				//long word without spaces
+				// Long word without spaces
 				continue;
 			}
 
 			$this->strings[] = $string;
 		}
+		
 		$this->strings = array_unique($this->strings);
 		$this->strings = array_values($this->strings);
 	}
 
 	/**
-	 * prepare strings for translating for user
+	 * Prepare strings for translating for user
 	 *
 	 * @throws Exception
 	 */
@@ -210,17 +226,18 @@ class Translator {
 		$data = $this->strings;
 
 		$in_content = '';
+		
 		if (isset($_POST['in']))
 			$in_content = $_POST['in'];
 
-		echo '<textarea name="out" style="width:100%;height:25vh;">' . implode("\n", $data) . '</textarea><br /><br />';
-		echo 'Translate text above with <a href="https://translate.google.com/">translator</a> and paste result below:<br /><br />';
-		echo '<textarea name="in" style="width:100%;height:25vh;">' . $in_content . '</textarea><br />';
-		echo '<input type="submit" name="action" value="Translate manually" />';
+		echo '<textarea name="out" style="width: 100%; height: 25vh;">' . implode("\n", $data) . '</textarea><br /><br />';
+		echo 'Translate text above with <a href="https://translate.google.com/" title="Translator">Translator</a> and paste result below:<br /><br />';
+		echo '<textarea name="in" style="width: 100%; height: 25vh;">' . $in_content . '</textarea><br />';
+		echo '<input type="submit" name="action" value="Translate Manually" />';
 	}
 
 	/**
-	 * combines source strings and manually translated strings to json format
+	 * Combines source strings and manually translated strings to json format
 	 * 
 	 * @param string $translation
 	 *
@@ -247,7 +264,7 @@ class Translator {
 	}
 
 	/**
-	 * translates everything automatically
+	 * Translates everything automatically
 	 *
 	 * @throws Exception
 	 */
@@ -255,7 +272,8 @@ class Translator {
 		global $LANGUAGES, $LANG_DIR;
 
 		$action_string = str_replace('Auto Translate: ', '', $action_string);
-		if($action_string == 'all'){
+		
+		if ($action_string == 'all') {
 			$action_string = '';
 		}
 
@@ -263,7 +281,7 @@ class Translator {
 		$text = implode("\n", $this->strings);
 
 		foreach ($LANGUAGES as $lang) {
-			if($action_string != '' && $action_string != $lang){
+			if ($action_string != '' && $action_string != $lang) {
 				continue;
 			}
 
@@ -271,66 +289,72 @@ class Translator {
 
 			$file_path = $LANG_DIR . strtolower($lang) . ".json";
 
-			//read old translations
+			// Read old translations
 			$old = array();
+			
 			if (file_exists($file_path)) {
 				$old = file_get_contents($file_path);
 				if ($old === false)
 					throw new Exception('can not open file: ' . $file_path);
 				$old = json_decode($old);
 				if ($old === null)
-					throw new Exception($file_path . ' data is not json');
+					throw new Exception($file_path . ' data is not JSON');
 			}
 
 			$translation = $service->translate('en', $lang, $text);
+			
 			if ($translation == '') {
-				throw new Exception('empty response from translation service');
+				throw new Exception('Empty response from translation service');
 			}
+			
 			$translation = str_replace("\r", '', $translation);
 			$translation = explode("\n", $translation);
+			
 			if (count($this->strings) != count($translation)) {
 				throw new Exception(count($this->strings) . ' translations imported from file, but service gave: ' . count($translation) . ', it must match');
 			}
 
-			//generate array
+			// Generate array
 			$this->translations = new stdClass();
+			
 			foreach ($this->strings as $key => $value) {
 				$translated = trim($translation[$key]);
 
 				$this->translations->$value = $translated;
 			}
 
-			//merge
+			// Merge
 			$merged = (object) array_merge((array) $this->translations, (array) $old);
 
-			//remove not use elements
+			// Remove not use elements
 			foreach ($merged as $k => $v) {
 				if (isset($this->translations->$k) == false) {
 					$v = null;
 					unset($merged->$k);
 				}
 			}
+			
 			$this->translations = $merged;
 
-			//generate JSON
+			// Generate JSON
 			$html = json_encode($this->translations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-			//save
+			// Save
 			$written = file_put_contents($file_path, $html);
+			
 			if ($written == 0) {
-				throw new Exception('can not write to: ' . $file_path);
-			}
-			else {
+				throw new Exception('Can not write to: ' . $file_path);
+			} else {
 				echo 'OK';
 			}
 
-			//sleep 05-1s
+			// Sleep 05-1s
 			usleep(rand(500, 1000) * 1000);
 		}
 	}
 
 	/**
-	 * saves current data as empty file
+	 * Saves current data as empty file
 	 *
 	 * @throws Exception
 	 */
@@ -341,6 +365,7 @@ class Translator {
 			return;
 		
 		$data = new stdClass();
+		
 		foreach($this->strings as $value){
 			$data->$value = '';
 		}
@@ -348,43 +373,47 @@ class Translator {
 		$data_encoded = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
 		$written = file_put_contents($LANG_DIR_EMPTY, $data_encoded);
+		
 		if ($written == 0) {
 			throw new Exception('can not write to: ' . $LANG_DIR_EMPTY);
-		}
-		else {
+		} else {
 			echo '<p><b>File updated: <b>' . $LANG_DIR_EMPTY . '</b></p>';
 		}
 	}
 
 	/**
-	 * show formatted translation, use json. parameters are only for testing mode
+	 * Show formatted translation, use JSON. Parameters are only for testing mode
 	 */
 	public function show_merged() {
-		echo '<textarea style="width:100%;height:30vh;margin-top:10px;">';
+		echo '<textarea style="width: 100%; height: 30vh; margin-top: 10px;">';
 		echo json_encode($this->translations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 		echo '</textarea>';
 	}
 
 	/**
-	 * merge two translations
+	 * Merge 2 translations
 	 *
 	 * @throws Exception
 	 */
 	public function merge() {
-		echo 'Old translations: <b>(priority on same keys)</b><br />';
+		echo 'Old Translations: <b>(Priority on same keys)</b><br />';
 		$value = '';
+		
 		if (isset($_POST['merge_old']))
 			$value = $_POST['merge_old'];
-		echo '<textarea style="width:100%;height:20vh;" name="merge_old">' . $value . '</textarea>';
+		
+		echo '<textarea style="width: 100%; height: 20vh;" name="merge_old">' . $value . '</textarea>';
 
 		echo '<br /><br />';
 
-		echo 'New translations:<br />';
+		echo 'New Translations:<br />';
 		$value = '';
+		
 		if (isset($_POST['merge_new']))
 			$value = $_POST['merge_new'];
-		echo '<textarea style="width:100%;height:20vh;" name="merge_new">' . $value . '</textarea>';
-		echo '<input type="submit" name="action" value="Merge" /><br /><br />';
+		
+		echo '<textarea style="width: 100%; height: 20vh;" name="merge_new">' . $value . '</textarea>';
+		echo '<input type="submit" name="action" value="Merge" title="Merge" /><br /><br />';
 
 		if (isset($_POST['merge_old']) == false)
 			return;
@@ -393,14 +422,15 @@ class Translator {
 		$new = json_decode($_POST['merge_new']);
 
 		if ($old === null)
-			throw new Exception('Old data is not json');
+			throw new Exception('Old data is not JSON');
+		
 		if ($new === null)
-			throw new Exception('New data is not json');
+			throw new Exception('New data is not JSON');
 
-		//merge
+		// Merge
 		$merged = (object) array_merge((array) $new, (array) $old);
 
-		//remove not use elements
+		// Remove not use elements
 		foreach ($merged as $k => $v) {
 			if (isset($new->$k) == false) {
 				$v = null;
@@ -408,7 +438,7 @@ class Translator {
 			}
 		}
 
-		echo '<textarea style="width:100%;height:30vh;">';
+		echo '<textarea style="width: 100%; height: 30vh;">';
 		echo json_encode($merged, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 		echo '</textarea>';
 	}
