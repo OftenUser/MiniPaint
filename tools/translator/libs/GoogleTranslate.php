@@ -26,8 +26,7 @@ namespace Statickidz;
  * @package GoogleTranslate
  *
  */
-class GoogleTranslate
-{
+class GoogleTranslate {
 
     /**
      * Retrieves the translation of a text
@@ -41,13 +40,12 @@ class GoogleTranslate
      *
      * @return string a simple string with the translation of the text in the target language
      */
-    public static function translate($source, $target, $text)
-    {
+    public static function translate($source, $target, $text) {
         // Request translation
         $response = self::requestTranslation($source, $target, $text);
 
         // Get translation text
-        // $response = self::getStringBetween("onmouseout=\"this.style.backgroundColor='#fff'\">", "</span></div>", strval($response));
+        // $response = self::getStringBetween("onmouseout=\"this.style.backgroundColor='#FFF'\">", "</span></div>", strval($response));
 
         // Clean translation
         $translation = self::getSentencesFromJSON($response);
@@ -69,10 +67,9 @@ class GoogleTranslate
      *
      * @return object[] The response of the translation service in JSON format
      */
-    protected static function requestTranslation($source, $target, $text)
-    {
+    protected static function requestTranslation($source, $target, $text) {
 
-        // Google translate URL
+        // Google Translate URL
         $url = "https://translate.google.com/translate_a/single?client=at&dt=t&dt=ld&dt=qca&dt=rm&dt=bd&dj=1&hl=es-ES&ie=UTF-8&oe=UTF-8&inputm=2&otf=2&iid=1dd3b944-fa62-4b55-b330-74909a99969e";
 
         $fields = array(
@@ -82,11 +79,13 @@ class GoogleTranslate
         );
 
         $max = 9000;
-        if(strlen($fields['q']) >= $max)
+        
+        if (strlen($fields['q']) >= $max)
             throw new \Exception("Maximum number of characters exceeded: ".strlen($fields['q'])."/$max");
         
         // URL-ify the data for the POST
         $fields_string = "";
+        
         foreach ($fields as $key => $value) {
             $fields_string .= $key . '=' . $value . '&';
         }
@@ -123,8 +122,7 @@ class GoogleTranslate
      *
      * @return string A single string with the translation
      */
-    protected static function getSentencesFromJSON($json)
-    {
+    protected static function getSentencesFromJSON($json) {
         $sentencesArray = json_decode($json, true);
         $sentences = "";
 
