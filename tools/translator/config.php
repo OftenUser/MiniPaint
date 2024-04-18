@@ -29,4 +29,4 @@ $LANGUAGES = [
 ];
 
 $LANG_DIR = __DIR__ . '/../../src/js/languages/';
-$LANG_DIR_EMPTY = __DIR__ . '/../../src/js/languages/empty.json'; //leave empty to skip
+$LANG_DIR_EMPTY = __DIR__ . '/../../src/js/languages/empty.json'; // Leave empty to skip
