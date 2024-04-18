@@ -24,7 +24,7 @@ const menuDefinition = [
 						target: 'file/open.open_dir'
 					},
 					{
-						name: 'Open from Webcam',
+						name: 'Open From Webcam',
 						target: 'file/open.open_webcam'
 					},
 					{
@@ -115,7 +115,7 @@ const menuDefinition = [
 				target: 'layer/new.new_selection'
 			},
 			{
-				name: 'Copy to Clipboard',
+				name: 'Copy To Clipboard',
 				shortcut: 'Ctrl+C',
 				target: 'edit/copy.copy_to_clipboard'
 			},
@@ -295,7 +295,7 @@ const menuDefinition = [
 				target: 'layer/new.new'
 			},
 			{
-				name: 'New from Selection',
+				name: 'New From Selection',
 				target: 'layer/new.new_selection'
 			},
 			{
@@ -307,7 +307,7 @@ const menuDefinition = [
 				target: 'layer/duplicate.duplicate'
 			},
 			{
-				name: 'Show / Hide',
+				name: 'Show/Hide',
 				target: 'layer/visibility.toggle'
 			},
 			{
@@ -315,7 +315,7 @@ const menuDefinition = [
 				target: 'layer/delete.delete'
 			},
 			{
-				name: 'Convert to Raster',
+				name: 'Convert To Raster',
 				target: 'layer/raster.raster'
 			},
 			{
@@ -369,7 +369,7 @@ const menuDefinition = [
 		name: 'Effects',
 		children: [
 			{
-				name: 'Effect browser',
+				name: 'Effect Browser',
 				ellipsis: true,
 				target: 'effects/browser.browser'
 			},
@@ -450,7 +450,7 @@ const menuDefinition = [
 						target: 'effects/instagram/inkwell.inkwell'
 					},
 					{
-						name: 'Lo-fi',
+						name: 'Lo-Fi',
 						target: 'effects/instagram/lofi.lofi'
 					},
 					{
@@ -468,7 +468,7 @@ const menuDefinition = [
 				]
 			},
 			{
-				name: 'Black and White',
+				name: 'Black And White',
 				ellipsis: true,
 				target: 'effects/black_and_white.black_and_white'
 			},
@@ -615,7 +615,7 @@ const menuDefinition = [
 				name: 'External',
 				children: [
 					{
-						name: 'TINYPNG - Compress PNG and JPEG',
+						name: 'TINYPNG - Compress PNG And JPEG',
 						href: 'https://tinypng.com'
 					},
 					{
@@ -623,11 +623,11 @@ const menuDefinition = [
 						href: 'https://www.remove.bg'
 					},
 					{
-						name: 'PNGTOSVG - Convert Image to SVG',
+						name: 'PNGTOSVG - Convert Image To SVG',
 						href: 'https://www.pngtosvg.com'
 					},
 					{
-						name: 'SQUOOSH - Compress and Compare Images',
+						name: 'SQUOOSH - Compress And Compare Images',
 						href: 'https://squoosh.app'
 					}
 				]
@@ -647,80 +647,91 @@ const menuDefinition = [
 						divider: true
 					},
 					{
-						//Arabic
+						// Arabic
 						name: 'عربي',
 						target: 'tools/translate.translate',
 						parameter: 'ar',
 					},
 					{
-						//Chinese simplified
+						// Chinese Simplified
 						name: '简体中文',
 						target: 'tools/translate.translate',
 						parameter: 'zh',
 					},
 					{
+						// German
 						name: 'Deutsch',
 						target: 'tools/translate.translate',
 						parameter: 'de',
 					},
 					{
+						// Dutch
 						name: 'Dutch',
 						target: 'tools/translate.translate',
 						parameter: 'nl',
 					},
 					{
+						// English
 						name: 'English (UK)',
 						target: 'tools/translate.translate',
 						parameter: 'uk',
 					},
 					{
+						// Spanish
 						name: 'Español',
 						target: 'tools/translate.translate',
 						parameter: 'es',
 					},
 					{
+						// French
 						name: 'Français',
 						target: 'tools/translate.translate',
 						parameter: 'fr',
 					},
 					{
+						// Greek
 						name: 'Greek',
 						target: 'tools/translate.translate',
 						parameter: 'el',
 					},
 					{
+						// Italian
 						name: 'Italiano',
 						target: 'tools/translate.translate',
 						parameter: 'it',
 					},
 					{
-						//Japanese
+						// Japanese
 						name: '日本語',
 						target: 'tools/translate.translate',
 						parameter: 'ja',
 					},
 					{
-						//Korean
+						// Korean
 						name: '한국어',
 						target: 'tools/translate.translate',
 						parameter: 'ko',
 					},
 					{
+						// Lithuanian
 						name: 'Lietuvių',
 						target: 'tools/translate.translate',
 						parameter: 'lt',
 					},
 					{
+						// Portuguese
 						name: 'Português',
 						target: 'tools/translate.translate',
 						parameter: 'pt',
 					},
 					{
-						name: 'русский язык',
+						// Russian
+						name: 'Русский',
 						target: 'tools/translate.translate',
 						parameter: 'ru',
 					},
 					{
+						// Turkish
 						name: 'Türkçe',
 						target: 'tools/translate.translate',
 						parameter: 'tr',
