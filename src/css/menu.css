@@ -1,11 +1,11 @@
 :root {
-	--menu-dropdown-background-color: #ffffff;
-	--menu-dropdown-border-color: #49844d;
-	--menu-dropdown-text-color: #2d2b2b;
-	--menu-dropdown-text-muted-color: #aaaaaa;
-	--menu-dropdown-hover-background-color: #adecab;
-	--menu-dropdown-hover-text-color: #2d2d2d;
-	--menu-dropdown-divider-color: #e5e5e5;
+	--menu-dropdown-background-color: #FFFFFF;
+	--menu-dropdown-border-color: #49844D;
+	--menu-dropdown-text-color: #2D2B2B;
+	--menu-dropdown-text-muted-color: #AAAAAA;
+	--menu-dropdown-hover-background-color: #ADECAB;
+	--menu-dropdown-hover-text-color: #2D2D2D;
+	--menu-dropdown-divider-color: #E5E5E5;
 }
 
 .sr_only {
@@ -26,6 +26,7 @@
 	right: 0;
 	z-index: 100;
 }
+
 .main_menu > ul.menu_bar {
 	display: flex;
 	flex-direction: row;
@@ -36,11 +37,13 @@
 	padding-left: 10px;
 	background: var(--menu-background-color);
 }
+
 .main_menu > ul.menu_bar > li {
 	padding: 0;
 	overflow: hidden;
 	height: 100%;
 }
+
 .main_menu > ul.menu_bar > li > a {
 	display: flex;
 	align-items: center;
@@ -50,23 +53,28 @@
 	padding: 0 10px;
 	height: 100%;
 }
+
 .main_menu > ul.menu_bar > li > a::-moz-focus-inner {
 	border: 0;
 }
+
 .main_menu > ul.menu_bar > li > a:focus {
 	outline: none;
 	box-shadow: 0 -3px var(--menu-dropdown-background-color) inset;
 }
+
 .main_menu > ul.menu_bar > li > a:hover {
 	background: var(--menu-dropdown-hover-background-color);
 	box-shadow: none;
 	color: var(--menu-dropdown-hover-text-color);
 }
+
 .main_menu > ul.menu_bar > li > a[aria-expanded="true"] {
 	background: var(--menu-dropdown-background-color);
 	box-shadow: none;
 	color: var(--menu-dropdown-text-color);
 }
+
 .main_menu > ul.menu_bar > li > a > * {
 	pointer-events: none;
 }
@@ -86,15 +94,18 @@
 	box-shadow: 0 0 0 1px var(--menu-dropdown-border-color);
 	background: var(--menu-dropdown-background-color);
 }
+
 .main_menu > ul.menu_dropdown > li {
 	padding: 0;
 }
+
 .main_menu > ul.menu_dropdown > li > hr {
 	background: none;
 	border: 1px solid var(--menu-dropdown-divider-color);
 	border-bottom: none;
 	margin: 0;
 }
+
 .main_menu > ul.menu_dropdown > li > a {
 	display: flex;
 	flex-direction: row;
@@ -107,23 +118,28 @@
 	text-decoration: none;
 	color: var(--menu-dropdown-text-color);
 }
+
 .main_menu > ul.menu_dropdown > li > ::-moz-focus-inner {
 	border: 0;
 }
+
 .main_menu > ul.menu_dropdown > li > a:focus {
 	outline: none;
 	box-shadow: 0 0 0 2px var(--menu-dropdown-hover-background-color) inset;
 }
+
 .main_menu > ul.menu_dropdown > li > a:hover {
 	background: var(--menu-dropdown-hover-background-color);
 	box-shadow: none;
 	color: var(--menu-dropdown-hover-text-color);
 }
+
 .main_menu > ul.menu_dropdown > li > a[aria-expanded="true"] {
 	background: var(--menu-dropdown-hover-background-color);
 	box-shadow: none;
 	color: var(--menu-dropdown-hover-text-color);
 }
+
 .main_menu > ul.menu_dropdown > li > a[aria-haspopup="true"]::after {
 	position: absolute;
 	content: ">";
@@ -132,9 +148,11 @@
 	transform: scaleY(2);
 	color: #808080;
 }
+
 .main_menu > ul.menu_dropdown > li > a[aria-haspopup="true"] > .name {
 	margin-right: 8px;
 }
+
 .main_menu > ul.menu_dropdown > li > a[target="_blank"]::after {
 	content: "";
 	width: 10px;
@@ -144,19 +162,21 @@
 	background-size: auto 8px;
 	opacity: 0.3;
 }
+
 .main_menu > ul.menu_dropdown > li > a > * {
 	pointer-events: none;
 }
+
 .main_menu > ul.menu_dropdown > li > a > .name {
 	flex-grow: 1;
 	overflow: hidden;
 	white-space: nowrap;
 }
+
 .main_menu > ul.menu_dropdown > li > a > .shortcut {
 	flex-shrink: 1;
 	color: var(--menu-dropdown-text-muted-color);
 }
-
 
 .mobile_menu {
 	display: none;
@@ -164,6 +184,7 @@
 	width: 100%;
 	top: 0;
 }
+
 .left_mobile_menu, .right_mobile_menu {
 	position: absolute;
 	width: 50px;
@@ -176,24 +197,32 @@
 	cursor: pointer;
 	background-color: transparent;
 }
+
 .left_mobile_menu:after, .right_mobile_menu:after {
 	position: absolute;
 	content: '';
-	left:0;
-	top:0;
-	bottom:0;
-	right:0;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
 	filter: var(--mobile-menu-toggle-filter);
 	background: url('images/icons/menu.svg') no-repeat center center;
 	background-size: auto 26px;
 }
-.left_mobile_menu { left:0; }
-.right_mobile_menu { right:0; }
 
-@media screen and (max-width:700px) {
+.left_mobile_menu {
+	left: 0;
+}
+
+.right_mobile_menu {
+	right: 0;
+}
+
+@media screen and (max-width: 700px) {
 	.mobile_menu {
 		display: block;
 	}
+	
 	.main_menu > ul.menu_bar {
 		height: 50px;
 		padding-left: 50px;
