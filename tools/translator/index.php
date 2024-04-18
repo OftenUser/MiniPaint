@@ -15,18 +15,18 @@ $translator = new Translator();
 	<h3 style="margin: 10px 0;"><a href="">Translator</a></h3>
 	<form action="" method="post">
 		<b>Helpers</b>:
-		<input type="submit" name="action" value="Import" />
-		<input type="submit" name="action" value="Filter" />
-		<input type="submit" name="action" value="Translate manually" />
-		<input type="submit" name="action" value="Merge" />
+		<input type="submit" name="action" value="Import" title="Import" />
+		<input type="submit" name="action" value="Filter" title="Filter" />
+		<input type="submit" name="action" value="Translate Manually" title="Translate Manually" />
+		<input type="submit" name="action" value="Merge" title="Merge" />
 		<br /><br />
 		<b>Actions</b>:
-		<input type="submit" name="action" value="Generate empty.json" />
-		<input type="submit" name="action" value="Auto Translate: all" /> or
+		<input type="submit" name="action" value="Generate Empty JSON" title="Generate Empty JSON" />
+		<input type="submit" name="action" value="Auto Translate: All" title="Auto Translate: All" /> or
 
 		<?php
 		foreach ($LANGUAGES as $lang) {
-			echo '<button type="submit" name="action" value="Auto Translate: '.strtolower($lang).'">'.strtoupper($lang).'</button> ';
+			echo '<button type="submit" name="action" value="Auto Translate: '.strtolower($lang).'" title="Auto Translate: '.strtolower($lang).'">'.strtoupper($lang).'</button> ';
 		}
 		?>
 		<br /><br />
@@ -38,17 +38,19 @@ $translator = new Translator();
 					$translator->extract();
 					echo "<pre>"; print_r($translator->strings); echo "</pre>\n";
 				}
+				
 				if ($_POST['action'] == 'Filter') {
 					$translator->scan();
 					$translator->extract();
 					$translator->filter();
 					echo "<pre>"; print_r($translator->strings); echo "</pre>\n";
 				}
-				if ($_POST['action'] == 'Translate manually') {
-					//show form
+				
+				if ($_POST['action'] == 'Translate Manually') {
+					// Show form
 					$translator->prepare();
 
-					//translate
+					// Translate
 					if (isset($_POST['in'])) {
 						$translation = $_POST['in'];
 
@@ -59,19 +61,22 @@ $translator = new Translator();
 						$translator->show_merged();
 					}
 				}
+				
 				if ($_POST['action'] == 'Merge') {
 					$translator->merge();
 				}
+				
 				if (stripos($_POST['action'], 'Auto Translate') !== false) {
-					//prepare
+					// Prepare
 					$translator->scan();
 					$translator->extract();
 					$translator->filter();
 
 					$translator->auto_translate($_POST['action']);
 				}
-				if ($_POST['action'] == 'Generate empty.json') {
-					//prepare
+				
+				if ($_POST['action'] == 'Generate Empty JSON') {
+					// Prepare
 					$translator->scan();
 					$translator->extract();
 					$translator->filter();
@@ -79,9 +84,8 @@ $translator = new Translator();
 					$translator->save_empty();
 				}
 
-			}
-			catch (Exception $exc) {
-				echo '<div style="margin-top:10px;color:red;">ERROR: ' . $exc->getMessage() . '</div>';
+			} catch (Exception $exc) {
+				echo '<div style="margin-top: 10px; color: red;">ERROR: ' . $exc->getMessage() . '</div>';
 			}
 		}
 		?>
