@@ -1,29 +1,29 @@
 import app from '../app.js';
 import config from '../config.js';
-import { Base_action } from './base.js';
+import {BaseAction} from './base.js';
 
-export class Refresh_action_attributes_action extends Base_action {
+export class RefreshActionAttributesAction extends BaseAction {
 	/**
 	 * Resizes/renders the canvas at the specified step. Usually used on both sides of a config update action.
 	 *
-	 * @param {boolean} call_when
+	 * @param {boolean} callWhen
 	 */
-	constructor(call_when = 'undo') {
+	constructor(callWhen = 'undo') {
 		super('refresh_action_attributes', 'Refresh Action Attributes');
-		this.call_when = call_when;
+		this.callWhen = callWhen;
 	}
 
 	async do() {
 		super.do();
-		if (this.call_when === 'do') {
-			app.GUI.GUI_tools.show_action_attributes();
+		if (this.callWhen === 'do') {
+			app.GUI.GUITools.showActionAttributes();
 		}
 	}
 
 	async undo() {
 		super.undo();
-		if (this.call_when === 'undo') {
-			app.GUI.GUI_tools.show_action_attributes();
+		if (this.callWhen === 'undo') {
+			app.GUI.GUITools.showActionAttributes();
 		}
 	}
 }
