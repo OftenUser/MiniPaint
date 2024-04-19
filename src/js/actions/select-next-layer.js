@@ -1,33 +1,35 @@
 import app from './../app.js';
 import config from './../config.js';
-import { Base_action } from './base.js';
+import {BaseAction} from './base.js';
 
-export class Select_next_layer_action extends Base_action {
-	constructor(reference_layer_id) {
+export class SelectNextLayerAction extends BaseAction {
+	constructor(referenceLayerID) {
 		super('select_next_layer', 'Select Next Layer');
-		this.reference_layer_id = reference_layer_id;
-		this.old_config_layer = null;
+		this.referenceLayerID = referenceLayerID;
+		this.oldConfigLayer = null;
 	}
 
 	async do() {
 		super.do();
-		const next_layer = app.Layers.find_next(this.reference_layer_id);
+		const next_layer = app.Layers.findNext(this.referenceLayerID);
+		
 		if (!next_layer) {
 			throw new Error('Aborted - Next layer to select not found');
 		}
-		this.old_config_layer = config.layer;
-		config.layer = next_layer;
+		
+		this.oldConfigLayer = config.layer;
+		config.layer = nextLayer;
 
 		app.Layers.render();
-		app.GUI.GUI_layers.render_layers();
+		app.GUI.GUILayers.renderLayers();
 	}
 
 	async undo() {
 		super.undo();
-		config.layer = this.old_config_layer;
-		this.old_config_layer = null;
+		config.layer = this.oldConfigLayer;
+		this.oldConfigLayer = null;
 
 		app.Layers.render();
-		app.GUI.GUI_layers.render_layers();
+		app.GUI.GUILayers.renderLayers();
 	}
 }
