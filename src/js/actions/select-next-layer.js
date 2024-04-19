@@ -11,9 +11,9 @@ export class SelectNextLayerAction extends BaseAction {
 
 	async do() {
 		super.do();
-		const next_layer = app.Layers.findNext(this.referenceLayerID);
+		const nextLayer = app.Layers.findNext(this.referenceLayerID);
 		
-		if (!next_layer) {
+		if (!nextLayer) {
 			throw new Error('Aborted - Next layer to select not found');
 		}
 		
