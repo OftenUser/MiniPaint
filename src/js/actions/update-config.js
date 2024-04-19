@@ -1,8 +1,8 @@
 import app from './../app.js';
 import config from './../config.js';
-import { Base_action } from './base.js';
+import {BaseAction} from './base.js';
 
-export class Update_config_action extends Base_action {
+export class UpdateConfigAction extends BaseAction {
 	/**
 	 * Updates the app config with the provided settings
 	 *
@@ -11,27 +11,30 @@ export class Update_config_action extends Base_action {
 	constructor(settings) {
 		super('update_config', 'Update Config');
 		this.settings = settings;
-		this.old_settings = {};
+		this.oldSettings = {};
 	}
 
 	async do() {
 		super.do();
+		
 		for (let i in this.settings) {
-			this.old_settings[i] = config[i];
+			this.oldSettings[i] = config[i];
 			config[i] = this.settings[i];
 		}
 	}
 
 	async undo() {
 		super.undo();
-		for (let i in this.old_settings) {
-			config[i] = this.old_settings[i];
+		
+		for (let i in this.oldSettings) {
+			config[i] = this.oldSettings[i];
 		}
-		this.old_settings = {};
+		
+		this.oldSettings = {};
 	}
 
 	free() {
 		this.settings = null;
-		this.old_settings = null;
+		this.oldSettings = null;
 	}
 }
