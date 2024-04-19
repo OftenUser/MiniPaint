@@ -1,50 +1,53 @@
 import app from './../app.js';
 import config from './../config.js';
-import { Base_action } from './base.js';
+import {BaseAction} from './base.js';
 
-export class Delete_layer_settings_action extends Base_action {
+export class DeleteLayerSettingsAction extends BaseAction {
 	/**
 	 * Deletes the specified settings in a layer
 	 *
-	 * @param {int} layer_id
-	 * @param {array} setting_names 
+	 * @param {int} layerID
+	 * @param {array} settingNames 
 	 */
-	constructor(layer_id, setting_names) {
+	constructor(layerID, settingNames) {
 		super('delete_layer_settings', 'Delete Layer Settings');
-		this.layer_id = parseInt(layer_id);
-		this.setting_names = setting_names;
-		this.reference_layer = null;
-		this.old_settings = {};
+		this.layerID = parseInt(layerID);
+		this.settingNames = settingNames;
+		this.referenceLayer = null;
+		this.oldSettings = {};
 	}
 
 	async do() {
 		super.do();
-		this.reference_layer = app.Layers.get_layer(this.layer_id);
-		if (!this.reference_layer) {
-			throw new Error('Aborted - layer with specified id doesn\'t exist');
+		this.referenceLayer = app.Layers.getLayer(this.layerID);
+		
+		if (!this.referenceLayer) {
+			throw new Error('Aborted - Layer with specified ID doesn\'t exist');
 		}
-		for (let name in this.setting_names) {
-			this.old_settings[name] = this.reference_layer[name];
-			delete this.reference_layer[name];
+		
+		for (let name in this.settingNames) {
+			this.oldSettings[name] = this.referenceLayer[name];
+			delete this.referenceLayer[name];
 		}
-		config.need_render = true;
+		
+		config.needRender = true;
 	}
 
 	async undo() {
 		super.undo();
-		if (this.reference_layer) {
-			for (let i in this.old_settings) {
-				this.reference_layer[i] = this.old_settings[i];
+		if (this.referenceLayer) {
+			for (let i in this.oldSettings) {
+				this.referenceLayer[i] = this.oldSettings[i];
 			}
-			this.old_settings = {};
+			this.oldSettings = {};
 		}
-		this.reference_layer = null;
-		config.need_render = true;
+		this.referenceLayer = null;
+		config.needRender = true;
 	}
 
 	free() {
-		this.setting_names = null;
-		this.reference_layer = null;
-		this.old_settings = null;
+		this.settingNames = null;
+		this.referenceLayer = null;
+		this.oldSettings = null;
 	}
 }
