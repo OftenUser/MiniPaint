@@ -35,12 +35,15 @@ export class DeleteLayerSettingsAction extends BaseAction {
 
 	async undo() {
 		super.undo();
+		
 		if (this.referenceLayer) {
 			for (let i in this.oldSettings) {
 				this.referenceLayer[i] = this.oldSettings[i];
 			}
+			
 			this.oldSettings = {};
 		}
+		
 		this.referenceLayer = null;
 		config.needRender = true;
 	}
