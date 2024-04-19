@@ -15,6 +15,7 @@ export class RefreshActionAttributesAction extends BaseAction {
 
 	async do() {
 		super.do();
+		
 		if (this.callWhen === 'do') {
 			app.GUI.GUITools.showActionAttributes();
 		}
@@ -22,6 +23,7 @@ export class RefreshActionAttributesAction extends BaseAction {
 
 	async undo() {
 		super.undo();
+		
 		if (this.callWhen === 'undo') {
 			app.GUI.GUITools.showActionAttributes();
 		}
