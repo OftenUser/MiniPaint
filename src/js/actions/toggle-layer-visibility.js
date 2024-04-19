@@ -1,37 +1,37 @@
 import app from '../app.js';
 import config from '../config.js';
-import { Base_action } from './base.js';
+import {BaseAction} from './base.js';
 
-export class Toggle_layer_visibility_action extends Base_action {
+export class Toggle_layer_visibility_action extends BaseAction {
 	/**
-	 * toggle layer visibility
+	 * Toggle layer visibility
 	 *
-	 * @param {int} layer_id
+	 * @param {int} layerID
 	 */
-	constructor(layer_id) {
+	constructor(layerID) {
 		super('toggle_layer_visibility', 'Toggle Layer Visibility');
-		this.layer_id = parseInt(layer_id);
-		this.old_visible = null;
+		this.layerID = parseInt(layerID);
+		this.oldVisible = null;
 	}
 
 	async do() {
 		super.do();
-		const layer = app.Layers.get_layer(this.layer_id);
-		this.old_visible = layer.visible;
+		const layer = app.Layers.getLayer(this.layerID);
+		this.oldVisible = layer.visible;
 		if (layer.visible == false)
 			layer.visible = true;
 		else
 			layer.visible = false;
 		app.Layers.render();
-		app.GUI.GUI_layers.render_layers();
+		app.GUI.GUILayers.renderLayers();
 	}
 
 	async undo() {
 		super.undo();
-		const layer = app.Layers.get_layer(this.layer_id);
-		layer.visible = this.old_visible;
-		this.old_visible = null;
+		const layer = app.Layers.getLayer(this.layerID);
+		layer.visible = this.oldVisible;
+		this.oldVisible = null;
 		app.Layers.render();
-		app.GUI.GUI_layers.render_layers();
+		app.GUI.GUILayers.renderLayers();
 	}
 }
