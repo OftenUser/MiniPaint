@@ -1,24 +1,24 @@
 import app from './../../app.js';
 import config from './../../config.js';
-import Dialog_class from './../../libs/popup.js';
-import Tools_settings_class from './../tools/settings.js';
-import Helper_class from './../../libs/helpers.js';
+import DialogClass from './../../libs/popup.js';
+import ToolsSettingsClass from './../tools/settings.js';
+import HelperClass from './../../libs/helpers.js';
 
-class Image_translate_class {
+class ImageTranslateClass {
 
 	constructor() {
-		this.POP = new Dialog_class();
-		this.Tools_settings = new Tools_settings_class();
-		this.Helper = new Helper_class();
+		this.POP = new DialogClass();
+		this.ToolsSettings = new ToolsSettingsClass();
+		this.Helper = new HelperClass();
 	}
 
 	translate() {
 		var _this = this;
-		var units = this.Tools_settings.get_setting('default_units');
-		var resolution = this.Tools_settings.get_setting('resolution');
+		var units = this.ToolsSettings.getSetting('default_units');
+		var resolution = this.ToolsSettings.getSetting('resolution');
 
-		var pos_x = this.Helper.get_user_unit(config.layer.x, units, resolution);
-		var pos_y = this.Helper.get_user_unit(config.layer.y, units, resolution);
+		var posX = this.Helper.getUserUnit(config.layer.x, units, resolution);
+		var posY = this.Helper.getUserUnit(config.layer.y, units, resolution);
 
 		var settings = {
 			title: 'Translate',
@@ -27,21 +27,22 @@ class Image_translate_class {
 				{name: "y", title: "Y position:", value: pos_y},
 			],
 			on_finish: function (params) {
-				var pos_x = _this.Helper.get_internal_unit(params.x, units, resolution);
-				var pos_y = _this.Helper.get_internal_unit(params.y, units, resolution);
+				var posX = _this.Helper.getInternalUnit(params.x, units, resolution);
+				var posY = _this.Helper.getInternalUnit(params.y, units, resolution);
 
-				app.State.do_action(
+				app.State.doAction(
 					new app.Actions.Bundle_action('translate_layer', 'Translate Layer', [
-						new app.Actions.Update_layer_action(config.layer.id, {
-							x: pos_x,
-							y: pos_y,
+						new app.Actions.UpdateLayerAction(config.layer.id, {
+							x: posX,
+							y: posY,
 						})
 					])
 				);
 			},
 		};
+		
 		this.POP.show(settings);
 	}
 }
 
-export default Image_translate_class;
+export default ImageTranslateClass;
