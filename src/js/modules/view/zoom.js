@@ -1,26 +1,25 @@
-import GUI_preview_class from './../../core/gui/gui-preview.js';
+import GUIPreviewClass from './../../core/gui/gui-preview.js';
 
-class View_zoom_class {
-
+class ViewZoomClass {
 	constructor() {
-		this.GUI_preview = new GUI_preview_class();
+		this.GUIPreview = new GUIPreviewClass();
 	}
 
 	in() {
-		this.GUI_preview.zoom(1);
+		this.GUIPreview.zoom(1);
 	}
 
 	out() {
-		this.GUI_preview.zoom(-1);
+		this.GUIPreview.zoom(-1);
 	}
 
 	original() {
-		this.GUI_preview.zoom(100);
+		this.GUIPreview.zoom(100);
 	}
 
 	auto() {
-		this.GUI_preview.zoom_auto();
+		this.GUIPreview.zoomAuto();
 	}
 }
 
-export default View_zoom_class;
+export default ViewZoomClass;
