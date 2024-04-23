@@ -1,51 +1,51 @@
-import Base_tools_class from './../../core/base-tools.js';
-import Base_layers_class from './../../core/base-layers.js';
+import BaseToolsClass from './../../core/base-tools.js';
+import BaseLayersClass from './../../core/base-layers.js';
 
-class Callout_class extends Base_tools_class {
+class CalloutClass extends BaseToolsClass {
 
 	constructor(ctx) {
 		super();
-		this.Base_layers = new Base_layers_class();
+		this.BaseLayers = new BaseLayersClass();
 		this.ctx = ctx;
 		this.name = 'callout';
 		this.layer = {};
-		this.best_ratio = 1.3;
-		this.snap_line_info = {x: null, y: null};
+		this.bestRatio = 1.3;
+		this.snapLineInfo = {x: null, y: null};
 	}
 
 	load() {
-		this.default_events();
+		this.defaultEvents();
 	}
 
 	mousedown(e) {
-		this.shape_mousedown(e);
+		this.shapeMousedown(e);
 	}
 
 	mousemove(e) {
-		this.shape_mousemove(e);
+		this.shapeMousemove(e);
 	}
 
 	mouseup(e) {
-		this.shape_mouseup(e);
+		this.shapeMouseup(e);
 	}
 
 	render_overlay(ctx){
-		var ctx = this.Base_layers.ctx;
-		this.render_overlay_parent(ctx);
+		var ctx = this.BaseLayers.ctx;
+		this.renderOverlayParent(ctx);
 	}
 
 	demo(ctx, x, y, width, height) {
-		ctx.fillStyle = '#aaa';
+		ctx.fillStyle = '#AAA';
 		ctx.strokeStyle = '#555';
 		ctx.lineWidth = 2;
 
-		var width_all = width + x * 2;
-		width = height * this.best_ratio;
-		x = (width_all - width) / 2;
+		var widthAll = width + x * 2;
+		width = height * this.bestRatio;
+		x = (widthAll - width) / 2;
 
 		ctx.save();
 		ctx.translate(x + width / 2, y + height / 2);
-		this.draw_shape(ctx, -width / 2, -height / 2, width, height);
+		this.drawShape(ctx, -width / 2, -height / 2, width, height);
 		ctx.restore();
 	}
 
@@ -55,24 +55,27 @@ class Callout_class extends Base_tools_class {
 
 		ctx.save();
 
-		//set styles
+		// Set styles
 		ctx.strokeStyle = 'transparent';
 		ctx.fillStyle = 'transparent';
-		if(params.border)
-			ctx.strokeStyle = params.border_color;
-		if(params.fill)
-			ctx.fillStyle = params.fill_color;
-		ctx.lineWidth = params.border_size;
+		
+		if (params.border)
+			ctx.strokeStyle = params.borderColor;
+		
+		if (params.fill)
+			ctx.fillStyle = params.fillColor;
+		
+		ctx.lineWidth = params.borderSize;
 
-		//draw with rotation support
+		// Draw with rotation support
 		ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
 		ctx.rotate(layer.rotate * Math.PI / 180);
-		this.draw_shape(ctx, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
+		this.drawShape(ctx, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
 
 		ctx.restore();
 	}
 
-	draw_shape(ctx, x, y, width, height, coords) {
+	drawShape(ctx, x, y, width, height, coords) {
 		ctx.lineJoin = "round";
 
 		ctx.beginPath();
@@ -96,4 +99,4 @@ class Callout_class extends Base_tools_class {
 
 }
 
-export default Callout_class;
+export default CalloutClass;
