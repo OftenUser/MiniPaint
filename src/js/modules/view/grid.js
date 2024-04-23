@@ -1,32 +1,33 @@
 import config from './../../config.js';
-import Helper_class from './../../libs/helpers.js';
-import Base_gui_class from './../../core/base-gui.js';
+import HelperClass from './../../libs/helpers.js';
+import BaseGUIClass from './../../core/base-gui.js';
 
 var instance = null;
 
-class View_grid_class {
-
+class ViewGridClass {
 	constructor() {
-		//singleton
+		// Singleton
 		if (instance) {
 			return instance;
 		}
+		
 		instance = this;
 
-		this.GUI = new Base_gui_class();
-		this.Helper = new Helper_class();
+		this.GUI = new BaseGUIClass();
+		this.Helper = new HelperClass();
 
-		this.set_events();
+		this.setEvents();
 	}
 
 	set_events() {
 		document.addEventListener('keydown', (event) => {
 			var code = event.keyCode;
-			if (this.Helper.is_input(event.target))
+			
+			if (this.Helper.isInput(event.target))
 				return;
 
 			if (code == 71 && event.ctrlKey != true && event.metaKey != true) {
-				//G - grid
+				// G - Grid
 				this.grid({visible: !this.GUI.grid});
 				event.preventDefault();
 			}
@@ -36,13 +37,12 @@ class View_grid_class {
 	grid() {
 		if (this.GUI.grid == false) {
 			this.GUI.grid = true;
-		}
-		else {
+		} else {
 			this.GUI.grid = false;
 		}
-		config.need_render = true;
+		
+		config.needRender = true;
 	}
-
 }
 
-export default View_grid_class;
+export default ViewGridClass;
