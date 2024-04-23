@@ -1,15 +1,15 @@
-class View_fullScreen_class {
-
-	constructor() {}
+class ViewFullScreenClass {
+	constructor() {
+		//
+	}
 
 	/**
-	 * toggle full-screen
+	 * Toggle full-screen
 	 */
 	fs() {
 		if (!document.fullscreenElement) {
 			document.documentElement.requestFullscreen();
-		}
-		else {
+		} else {
 			if (document.exitFullscreen) {
 				document.exitFullscreen();
 			}
@@ -17,4 +17,4 @@ class View_fullScreen_class {
 	}
 }
 
-export default View_fullScreen_class;
+export default ViewFullScreenClass;
