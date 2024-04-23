@@ -24,7 +24,7 @@ class FileQuicksaveClass {
 			var code = event.keyCode;
 
 			if (code == 120) {
-				//F9
+				// F9
 				_this.quicksave();
 			}
 		}, false);
