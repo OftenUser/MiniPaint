@@ -1,15 +1,13 @@
-import Base_search_class from './../../core/base-search.js';
+import BaseSearchClass from './../../core/base-search.js';
 
-class Tools_search_class {
-
+class ToolsSearchClass {
 	constructor() {
-		this.Base_search = new Base_search_class();
+		this.BaseSearch = new BaseSearchClass();
 	}
 
 	search() {
-		this.Base_search.search();
+		this.BaseSearch.search();
 	}
-
 }
 
-export default Tools_search_class;
+export default ToolsSearchClass;
