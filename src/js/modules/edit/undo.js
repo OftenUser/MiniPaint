@@ -1,31 +1,32 @@
-import Base_state_class from './../../core/base-state.js';
+import BaseStateClass from './../../core/base-state.js';
 
 var instance = null;
 
-class Edit_undo_class {
+class EditUndoClass {
 
 	constructor() {
-		//singleton
+		// Singleton
 		if (instance) {
 			return instance;
 		}
+		
 		instance = this;
 
-		this.Base_state = new Base_state_class();
+		this.BaseState = new BaseStateClass();
 		this.events();
 	}
 
 	events(){
 		var _this = this;
 
-		document.querySelector('#undo_button').addEventListener('click', function (event) {
-			_this.Base_state.undo();
+		document.querySelector('#undo_button').addEventListener('click', function(event) {
+			_this.BaseState.undo();
 		});
 	}
 
 	undo() {
-		this.Base_state.undo();
+		this.BaseState.undo();
 	}
 }
 
-export default Edit_undo_class;
+export default EditUndoClass;
