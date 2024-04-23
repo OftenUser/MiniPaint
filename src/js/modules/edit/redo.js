@@ -1,14 +1,13 @@
-import Base_state_class from './../../core/base-state.js';
+import BaseStateClass from './../../core/base-state.js';
 
-class Edit_redo_class {
-
+class EditRedoClass {
 	constructor() {
-		this.Base_state = new Base_state_class();
+		this.BaseState = new BaseStateClass();
 	}
 
 	redo() {
-		this.Base_state.redo();
+		this.BaseState.redo();
 	}
 }
 
-export default Edit_redo_class;
+export default EditRedoClass;
