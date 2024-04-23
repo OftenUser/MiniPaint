@@ -1,26 +1,26 @@
 import config from './../../config.js';
-import File_save_class from './save.js';
-import Dialog_class from './../../libs/popup.js';
+import FileSaveClass from './save.js';
+import DialogClass from './../../libs/popup.js';
 import alertify from './../../../../node_modules/alertifyjs/build/alertify.min.js';
 
 /** 
- * manages files / quick-save
+ * Manages files/quick-save
  * 
  * @author ViliusL
  */
-class File_quicksave_class {
+class FileQuicksaveClass {
 
 	constructor() {
-		this.POP = new Dialog_class();
-		this.File_save = new File_save_class();
+		this.POP = new DialogClass();
+		this.FileSave = new FileSaveClass();
 
-		this.set_events();
+		this.setEvents();
 	}
 
-	set_events() {
+	setEvents() {
 		var _this = this;
 
-		document.addEventListener('keydown', function (event) {
+		document.addEventListener('keydown', function(event) {
 			var code = event.keyCode;
 
 			if (code == 120) {
@@ -31,15 +31,17 @@ class File_quicksave_class {
 	}
 
 	quicksave() {
-		//save image data
-		var data_json = this.File_save.export_as_json();
-		if (data_json.length > 5000000) {
+		// Save image data
+		var dataJSON = this.FileSave.exportAsJSON();
+		
+		if (dataJSON.length > 5000000) {
 			alertify.error('Sorry, image is too big, max 5 MB.');
 			return false;
 		}
-		localStorage.setItem('quicksave_data', data_json);
+		
+		localStorage.setItem('quicksave_data', dataJSON);
 	}
 
 }
 
-export default File_quicksave_class;
+export default FileQuicksaveClass;
