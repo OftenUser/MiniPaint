@@ -1,14 +1,12 @@
 /** 
- * manages files / print
+ * Manages files/print
  * 
  * @author ViliusL
  */
-class File_print_class {
-
+class FilePrintClass {
 	print() {
 		window.print();
 	}
-
 }
 
-export default File_print_class;
+export default FilePrintClass;
