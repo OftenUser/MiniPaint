@@ -1,19 +1,19 @@
 import app from './../../app.js';
 import config from './../../config.js';
-import Base_layers_class from './../../core/base-layers.js';
+import BaseLayersClass from './../../core/base-layers.js';
 
-class Layer_visibility_class {
+class LayerVisibilityClass {
 
 	constructor() {
-		this.Base_layers = new Base_layers_class();
+		this.BaseLayers = new BaseLayersClass();
 	}
 
 	toggle() {
-		app.State.do_action(
-			new app.Actions.Toggle_layer_visibility_action(config.layer.id)
+		app.State.doAction(
+			new app.Actions.ToggleLayerVisibilityAction(config.layer.id)
 		);
 	}
 
 }
 
-export default Layer_visibility_class;
+export default LayerVisibilityClass;
