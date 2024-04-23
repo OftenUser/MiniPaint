@@ -1,29 +1,29 @@
 import config from './../../config.js';
-import Base_layers_class from './../../core/base-layers.js';
-import File_open_class from './open.js';
+import BaseLayersClass from './../../core/base-layers.js';
+import FileOpenClass from './open.js';
 
 /** 
- * manages files / quick-load
+ * Manages files/quick-load
  * 
  * @author ViliusL
  */
-class File_quickload_class {
+class FileQuickloadClass {
 
 	constructor() {
-		this.Base_layers = new Base_layers_class();
-		this.File_open = new File_open_class();
+		this.BaseLayers = new BaseLayersClass();
+		this.FileOpen = new FileOpenClass();
 
-		this.set_events();
+		this.setEvents();
 	}
 
-	set_events() {
+	setEvents() {
 		var _this = this;
 
-		document.addEventListener('keydown', function (event) {
+		document.addEventListener('keydown', function(event) {
 			var code = event.keyCode;
 
 			if (code == 121) {
-				//F10
+				// F10
 				_this.quickload();
 				event.preventDefault();
 			}
@@ -31,16 +31,16 @@ class File_quickload_class {
 	}
 
 	quickload() {
-		//load image data
+		// Load image data
 		var json = localStorage.getItem('quicksave_data');
 		if (json == '' || json == null) {
-			//nothing was found
+			// Nothing was found
 			return false;
 		}
 
-		this.File_open.load_json(json);
+		this.FileOpen.loadJSON(json);
 	}
 
 }
 
-export default File_quickload_class;
+export default FileQuickloadClass;
