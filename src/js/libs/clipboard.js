@@ -1,144 +1,152 @@
-import Helper_class from './helpers.js';
+import HelperClass from './helpers.js';
 
 /**
- * image pasting into canvas
+ * Image pasting into canvas
  * 
- * @param {string} canvas_id - canvas id
- * @param {boolean} autoresize - if canvas will be resized
+ * @param {string} canvasID - Canvas ID
+ * @param {boolean} autoresize - If canvas will be resized
  */
-class Clipboard_class {
+class ClipboardClass {
 
-	constructor(on_paste) {
+	constructor(onPaste) {
 		var _self = this;
 
-		this.Helper = new Helper_class();
+		this.Helper = new HelperClass();
 
-		this.on_paste = on_paste;
-		this.ctrl_pressed = false;
-		this.command_pressed = false;
+		this.onPaste = onPaste;
+		this.ctrlPressed = false;
+		this.commandPressed = false;
 		this.pasteCatcher;
-		this.paste_mode;
+		this.pasteMode;
 
-		//handlers
-		document.addEventListener('keydown', function (e) {
-			_self.on_keyboard_action(e);
-		}, false); //firefox fix
-		document.addEventListener('keyup', function (e) {
-			_self.on_keyboardup_action(e);
-		}, false); //firefox fix
-		document.addEventListener('paste', function (e) {
-			_self.paste_auto(e);
-		}, false); //official paste handler
+		// Handlers
+		document.addEventListener('keydown', function(e) {
+			_self.onKeyboardAction(e);
+		}, false); // Firefox fix
+		document.addEventListener('keyup', function(e) {
+			_self.onKeyboardUpAction(e);
+		}, false); // Firefox fix
+		document.addEventListener('paste', function(e) {
+			_self.pasteAuto(e);
+		}, false); // Official paste handler
 
 		this.init();
 	}
 
-	//constructor - prepare
+	// Constructor - Prepare
 	init() {
 		var _self = this;
 
-		//if using auto
+		// If using auto
 		if (window.Clipboard)
 			return true;
 
 		this.pasteCatcher = document.createElement("div");
 		this.pasteCatcher.setAttribute("id", "paste_ff");
 		this.pasteCatcher.setAttribute("contenteditable", "");
-		this.pasteCatcher.style.cssText = 'opacity:0;position:fixed;top:0px;left:0px;';
+		this.pasteCatcher.style.cssText = 'opacity: 0; position: fixed; top: 0px; left: 0px;';
 		this.pasteCatcher.style.marginLeft = "-20px";
 		this.pasteCatcher.style.width = "10px";
 		document.body.appendChild(this.pasteCatcher);
 
-		// create an observer instance
-		var observer = new MutationObserver(function (mutations) {
-			mutations.forEach(function (mutation) {
-				if (this.paste_mode == 'auto' || this.ctrl_pressed == false || mutation.type != 'childList')
+		// Create an observer instance
+		var observer = new MutationObserver(function(mutations) {
+			mutations.forEach(function(mutation) {
+				if (this.paste_mode == 'auto' || this.ctrlPressed == false || mutation.type != 'childList')
 					return true;
 
-				//if paste handle failed - capture pasted object manually
+				// If paste handle failed - Capture pasted object manually
 				if (mutation.addedNodes.length == 1) {
 					if (mutation.addedNodes[0].src != undefined) {
-						//image
-						_self.paste_createImage(mutation.addedNodes[0].src);
+						// Image
+						_self.pasteCreateImage(mutation.addedNodes[0].src);
 					}
-					//register cleanup after some time.
-					setTimeout(function () {
+					
+					// Register cleanup after some time.
+					setTimeout(function() {
 						this.pasteCatcher.innerHTML = '';
 					}, 20);
 				}
 			});
 		});
+		
 		var target = document.getElementById('paste_ff');
 		var config = {attributes: true, childList: true, characterData: true};
 		observer.observe(target, config);
 	}
 
-	//default paste action
-	paste_auto(e) {
-		if (this.Helper.is_input(e.target))
+	// Default paste action
+	pasteAuto(e) {
+		if (this.Helper.isInput(e.target))
 			return;
 
-		this.paste_mode = '';
+		this.pasteMode = '';
+		
 		if (!window.Clipboard) {
 			this.pasteCatcher.innerHTML = '';
 		}
+		
 		if (e.clipboardData) {
 			var items = e.clipboardData.items;
+			
 			if (items) {
-				this.paste_mode = 'auto';
-				//access data directly
+				this.pasteMode = 'auto';
+				
+				// Access data directly
 				for (var i = 0; i < items.length; i++) {
 					if (items[i].type.indexOf("image") !== -1) {
-						//image
+						// Image
 						var blob = items[i].getAsFile();
 						var URLObj = window.URL || window.webkitURL;
 						var source = URLObj.createObjectURL(blob);
-						this.paste_createImage(source);
+						this.pasteCreateImage(source);
 					}
 				}
+				
 				e.preventDefault();
-			}
-			else {
-				//wait for DOMSubtreeModified event
-				//https://bugzilla.mozilla.org/show_bug.cgi?id=891247
+			} else {
+				// Wait for DOMSubtreeModified event
+				// https://bugzilla.mozilla.org/show_bug.cgi?id=891247
 			}
 		}
 	}
 
-	//on keyboard press
-	on_keyboard_action(event) {
+	// On keyboard press
+	onKeyboardAction(event) {
 		var k = event.keyCode;
-		//ctrl
+		
+		// Ctrl
 		if (k == 17 || event.metaKey || event.ctrlKey) {
-			if (this.ctrl_pressed == false)
-				this.ctrl_pressed = true;
+			if (this.ctrlPressed == false)
+				this.ctrlPressed = true;
 		}
-		//v
+		
+		// V
 		if (k == 86) {
-			if (this.Helper.is_input(document.activeElement)) {
+			if (this.Helper.isInput(document.activeElement)) {
 				return false;
 			}
 
-			if (this.ctrl_pressed == true && !window.Clipboard)
+			if (this.ctrlPressed == true && !window.Clipboard)
 				this.pasteCatcher.focus();
 		}
 	}
 
-	//on kaybord release
-	on_keyboardup_action(event) {
-		//ctrl
-		if (event.ctrlKey == false && this.ctrl_pressed == true) {
-			this.ctrl_pressed = false;
+	// On keyboard release
+	onKeyboardUpAction(event) {
+		// Ctrl
+		if (event.ctrlKey == false && this.ctrlPressed == true) {
+			this.ctrlPressed = false;
 		}
-		//command
-		else if (event.metaKey == false && this.command_pressed == true) {
-			this.command_pressed = false;
-			this.ctrl_pressed = false;
+		// Command
+		else if (event.metaKey == false && this.commandPressed == true) {
+			this.commandPressed = false;
+			this.ctrlPressed = false;
 		}
 	}
 
-	//draw image
-	paste_createImage(source) {
+	// Draw image
+	pasteCreateImage(source) {
 		var pastedImage = new Image();
 		var _this = this;
 
@@ -149,4 +157,4 @@ class Clipboard_class {
 	}
 }
 
-export default Clipboard_class;
+export default ClipboardClass;
