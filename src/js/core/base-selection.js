@@ -6,9 +6,9 @@
 import config from './../config.js';
 
 var instance = null;
-var settings_all = [];
+var settingsAll = [];
 
-const handle_size = 12;
+const handleSize = 12;
 
 const DRAG_TYPE_TOP = 1;
 const DRAG_TYPE_BOTTOM = 2;
@@ -16,18 +16,18 @@ const DRAG_TYPE_LEFT = 4;
 const DRAG_TYPE_RIGHT = 8;
 
 /**
- * Selection class - draws rectangular selection on canvas, can be resized.
+ * Selection class - Draws rectangular selection on canvas, can be resized.
  */
-class Base_selection_class {
+class BaseSelectionClass {
 
 	/**
-	 * settings:
-	 * - enable_background
-	 * - enable_borders
-	 * - enable_controls
-	 * - enable_rotation
-	 * - enable_move
-	 * - keep_ratio
+	 * Settings:
+	 * - enableBackground
+	 * - enableBorders
+	 * - enableControls
+	 * - enableRotation
+	 * - enableMove
+	 * - keepRatio
 	 * 
 	 * @param {ctx} ctx
 	 * @param {object} settings
@@ -35,83 +35,99 @@ class Base_selection_class {
 	 */
 	constructor(ctx, settings, key = null) {
 		if (key != null) {
-			settings_all[key] = settings;
+			settingsAll[key] = settings;
 		}
 
-		//singleton
+		// Singleton
 		if (instance) {
 			return instance;
 		}
+		
 		instance = this;
 
 		this.ctx = ctx;
-		this.mouse_lock = null;
-		this.selected_obj_positions = {};
-		this.selected_obj_rotate_position = {};
-		this.selected_object_drag_type = null;
-		this.click_details = {};
-		this.is_touch = false;
+		this.mouseLock = null;
+		this.selectedObjPositions = {};
+		this.selectedObjRotatePosition = {};
+		this.selectedObjectDragType = null;
+		this.clickDetails = {};
+		this.isTouch = false;
 		// True if dragging from inside canvas area
-		this.is_drag = false;
-		this.current_angle = null;
+		this.isDrag = false;
+		this.currentAngle = null;
 
 		this.events();
 	}
 
 	events() {
 		document.addEventListener('mousedown', (e) => {
-			this.is_drag = false;
-			if(this.is_touch == true)
+			this.isDrag = false;
+			
+			if (this.isTouch == true)
 				return;
+			
 			if (!e.target.closest('#main_wrapper'))
 				return;
-			this.is_drag = true;
-			this.selected_object_actions(e);
+			
+			this.isDrag = true;
+			this.selectedObjectActions(e);
 		});
+		
 		document.addEventListener('mousemove', (e) => {
-			if(this.is_touch == true)
+			if (this.isTouch == true)
 				return;
-			this.selected_object_actions(e);
+			
+			this.selectedObjectActions(e);
 		});
+		
 		document.addEventListener('mouseup', (e) => {
-			if(this.is_touch == true)
+			if (this.isTouch == true)
 				return;
-			this.selected_object_actions(e);
+			
+			this.selectedObjectActions(e);
 		});
 
-		// touch
+		// Touch
 		document.addEventListener('touchstart', (event) => {
-			this.is_drag = false;
-			this.is_touch = true;
+			this.isDrag = false;
+			this.isTouch = true;
+			
 			if (!event.target.closest('#main_wrapper'))
 				return;
-			this.is_drag = true;
-			this.selected_object_actions(event);
+			
+			this.isDrag = true;
+			this.selectedObjectActions(event);
 		});
+		
 		document.addEventListener('touchmove', (event) => {
-			this.selected_object_actions(event);
+			this.selectedObjectActions(event);
 		}, {passive: false});
+		
 		document.addEventListener('touchend', (event) => {
-			this.selected_object_actions(event);
+			this.selectedObjectActions(event);
 		});
 	}
 
-	set_selection(x, y, width, height) {
-		var settings = this.find_settings();
+	setSelection(x, y, width, height) {
+		var settings = this.findSettings();
 
 		if (x != null)
 			settings.data.x = x;
+		
 		if (y != null)
 			settings.data.y = y;
+		
 		if (width != null)
 			settings.data.width = width;
+		
 		if (height != null)
 			settings.data.height = height;
-		config.need_render = true;
+		
+		config.needRender = true;
 	}
 
-	reset_selection() {
-		var settings = this.find_settings();
+	resetSelection() {
+		var settings = this.findSettings();
 
 		settings.data = {
 			x: null,
@@ -119,82 +135,86 @@ class Base_selection_class {
 			width: null,
 			height: null,
 		};
-		config.need_render = true;
+		
+		config.needRender = true;
 	}
 
-	get_selection() {
-		var settings = this.find_settings();
+	getSelection() {
+		var settings = this.findSettings();
 
 		return settings.data;
 	}
 
-	find_settings() {
-		var current_key = config.TOOL.name;
+	findSettings() {
+		var currentKey = config.TOOL.name;
 		var settings = null;
 
-		for (var i in settings_all) {
-			if (i == current_key)
-				settings = settings_all[i];
+		for (var i in settingsAll) {
+			if (i == currentKey)
+				settings = settingsAll[i];
 		}
 
-		//default
+		// Default
 		if (settings === null) {
-			settings = settings_all['main'];
+			settings = settingsAll['main'];
 		}
 
-		//find data
-		settings.data = (settings.data_function).call();
+		// Find data
+		settings.data = (settings.dataFunction).call();
 
 		return settings;
 	}
 
-	calcRotateDistanceFromX(layerW) {
-		const block_size = handle_size / config.ZOOM;
+	calculateRotateDistanceFromX(layerWidth) {
+		const blockSize = handleSize / config.ZOOM;
 	
 		return Math.max(
-		  Math.min(layerW * 0.9, Math.abs(layerW - 2 * block_size)),
-		  layerW / 2 - block_size / 2
+		  Math.min(layerWidth * 0.9, Math.abs(layerWidth - 2 * blockSize)),
+		  layerWidth / 2 - blockSize / 2
 		);
 	}
+	
 	/**
-	 * marks object as selected, and draws corners
+	 * Marks object as selected, and draws corners
 	 */
-	draw_selection() {
-		var settings = this.find_settings();
+	drawSelection() {
+		var settings = this.findSettings();
 		var data = settings.data;
 
 		if (settings.data === null || settings.data.status == 'draft'
-			|| (settings.data.hide_selection_if_active === true && settings.data.type == config.TOOL.name)) {
+			|| (settings.data.hideSelectionIfActive === true && settings.data.type == config.TOOL.name)) {
 			return;
 		}
 
 		var x = settings.data.x;
 		var y = settings.data.y;
-		var w = settings.data.width;
-		var h = settings.data.height;
+		var _width = settings.data.width;
+		var _height = settings.data.height;
 
-		if (x == null || y == null || w == null || h == null) {
-			//not supported 
+		if (x == null || y == null || _width == null || _height == null) {
+			// Not supported 
 			return;
 		}
 
-		var block_size_default = handle_size / config.ZOOM;
+		var blockSizeDefault = handleSize / config.ZOOM;
 
 		if (config.ZOOM != 1) {
 			x = Math.round(x);
 			y = Math.round(y);
-			w = Math.round(w);
-			h = Math.round(h);
+			_width = Math.round(_width);
+			_height = Math.round(_height);
 		}
-		var block_size = block_size_default;
-		var corner_offset = (block_size / 2.4);
-		var middle_offset = (block_size / 1.9);
+		
+		var blockSize = blockSizeDefault;
+		var cornerOffset = (blockSize / 2.4);
+		var middleOffset = (blockSize / 1.9);
 
 		this.ctx.save();
 		this.ctx.globalAlpha = 1;
 		let isRotated = false;
+		
 		if (data.rotate != null && data.rotate != 0) {
-			//rotate
+			// Rotate
 			isRotated = true;
 			this.ctx.translate(data.x + data.width / 2, data.y + data.height / 2);
 			this.ctx.rotate(data.rotate * Math.PI / 180);
@@ -202,169 +222,172 @@ class Base_selection_class {
 			y = Math.round(-data.height / 2);
 		}
 
-		//fill
-		if (settings.enable_background == true) {
+		// Fill
+		if (settings.enableBackground == true) {
 			this.ctx.fillStyle = "rgba(0, 255, 0, 0.3)";
-			this.ctx.fillRect(x, y, w, h);
+			this.ctx.fillRect(x, y, _width, _height);
 		}
 
 		const wholeLineWidth = 2 / config.ZOOM;
 		const halfLineWidth = wholeLineWidth / 2;
 
-		//borders
-		if (settings.enable_borders == true && (x != 0 || y != 0 || w != config.WIDTH || h != config.HEIGHT)) {
+		// Borders
+		if (settings.enableBorders == true && (x != 0 || y != 0 || _width != config.WIDTH || _height != config.HEIGHT)) {
 			this.ctx.lineWidth = wholeLineWidth;
 			this.ctx.strokeStyle = 'rgb(255, 255, 255)';
-			this.ctx.strokeRect(x - halfLineWidth, y - halfLineWidth, w + wholeLineWidth, h + wholeLineWidth);
+			this.ctx.strokeRect(x - halfLineWidth, y - halfLineWidth, _width + wholeLineWidth, _height + wholeLineWidth);
 			this.ctx.lineWidth = halfLineWidth;
 			this.ctx.strokeStyle = 'rgb(0, 0, 0)';
-			this.ctx.strokeRect(x - wholeLineWidth, y - wholeLineWidth, w + (wholeLineWidth * 2), h + (wholeLineWidth * 2));
+			this.ctx.strokeRect(x - wholeLineWidth, y - wholeLineWidth, _width + (wholeLineWidth * 2), _height + (wholeLineWidth * 2));
 		}
 
-		//show crop lines
-		if(settings.crop_lines === true){
-
-			for(var part = 1; part < 3; part++) {
+		// Show crop lines
+		if (settings.cropLines === true) {
+			for (var part = 1; part < 3; part++) {
 				this.ctx.lineWidth = wholeLineWidth;
 				this.ctx.strokeStyle = 'rgb(255, 255, 255)';
 				this.ctx.beginPath();
-				this.ctx.moveTo(x + w / 3 * part - halfLineWidth, y);
-				this.ctx.lineTo(x + w / 3 * part - halfLineWidth, y + h);
+				this.ctx.moveTo(x + _width / 3 * part - halfLineWidth, y);
+				this.ctx.lineTo(x + _width / 3 * part - halfLineWidth, y + _height);
 				this.ctx.stroke();
 
 				this.ctx.lineWidth = halfLineWidth;
 				this.ctx.strokeStyle = 'rgb(0, 0, 0)';
 				this.ctx.beginPath();
-				this.ctx.moveTo(x + w / 3 * part - halfLineWidth, y);
-				this.ctx.lineTo(x + w / 3 * part - halfLineWidth, y + h);
+				this.ctx.moveTo(x + _width / 3 * part - halfLineWidth, y);
+				this.ctx.lineTo(x + _width / 3 * part - halfLineWidth, y + _height);
 				this.ctx.stroke();
 			}
 
-			for(var part = 1; part < 3; part++) {
+			for (var part = 1; part < 3; part++) {
 				this.ctx.lineWidth = wholeLineWidth;
 				this.ctx.strokeStyle = 'rgb(255, 255, 255)';
 				this.ctx.beginPath();
-				this.ctx.moveTo(x, y + h / 3 * part - halfLineWidth);
-				this.ctx.lineTo(x + w, y + h / 3 * part - halfLineWidth);
+				this.ctx.moveTo(x, y + _height / 3 * part - halfLineWidth);
+				this.ctx.lineTo(x + _width, y + _height / 3 * part - halfLineWidth);
 				this.ctx.stroke();
 
 				this.ctx.lineWidth = halfLineWidth;
 				this.ctx.strokeStyle = 'rgb(0, 0, 0)';
 				this.ctx.beginPath();
-				this.ctx.moveTo(x, y + h / 3 * part - halfLineWidth);
-				this.ctx.lineTo(x + w, y + h / 3 * part - halfLineWidth);
+				this.ctx.moveTo(x, y + _height / 3 * part - halfLineWidth);
+				this.ctx.lineTo(x + _width, y + _height / 3 * part - halfLineWidth);
 				this.ctx.stroke();
 			}
 		}
 
-		const hitsLeftEdge = isRotated ? false : x < handle_size;
-		const hitsTopEdge = isRotated ? false : y < handle_size;
-		const hitsRightEdge = isRotated ? false : x + w > config.WIDTH - handle_size;
-		const hitsBottomEdge = isRotated ? false : y + h > config.HEIGHT - handle_size;
+		const hitsLeftEdge = isRotated ? false : x < handleSize;
+		const hitsTopEdge = isRotated ? false : y < handleSize;
+		const hitsRightEdge = isRotated ? false : x + _width > config.WIDTH - handleSize;
+		const hitsBottomEdge = isRotated ? false : y + _height > config.HEIGHT - handleSize;
 
-		//draw corners
-		var corner = (x, y, dx, dy, drag_type, cursor) => {
+		// Draw corners
+		var corner = (x, y, dx, dy, dragType, cursor) => {
 			var angle = 0;
+			
 			if (settings.data.rotate != null && settings.data.rotate != 0) {
 				angle = settings.data.rotate;
 			}
 
-			if (settings.enable_controls == false || angle != 0) {
+			if (settings.enableControls == false || angle != 0) {
 				this.ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
 				this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-			}
-			else {
+			} else {
 				this.ctx.strokeStyle = "#000000";
-				this.ctx.fillStyle = "#ffffff";
+				this.ctx.fillStyle = "#FFFFFF";
 			}
+			
 			this.ctx.lineWidth = wholeLineWidth;
 
-			//create path
+			// Create path
 			const circle = new Path2D();
-			circle.arc(x + dx * block_size, y + dy * block_size, block_size / 2, 0, 2 * Math.PI);
+			circle.arc(x + dx * block_size, y + dy * blockSize, blockSize / 2, 0, 2 * Math.PI);
 
-			//draw
+			// Draw
 			this.ctx.fill(circle);
 			this.ctx.stroke(circle);
 
-			//register position
-			this.selected_obj_positions[drag_type] = {
+			// Register position
+			this.selectedObjectPositions[dragType] = {
 				cursor: cursor,
 				path: circle,
 			};
 		};
 
-		//draw rotation
-		var draw_rotation = () => {
-			var settings = this.find_settings();
+		// Draw rotation
+		var drawRotation = () => {
+			var settings = this.findSettings();
 
 			if (settings.data === null
 				|| settings.data.status == 'draft'
 				|| settings.data.rotate === null
-				|| (settings.data.hide_selection_if_active === true && settings.data.type == config.TOOL.name)) {
+				|| (settings.data.hideSelectionIfActive === true && settings.data.type == config.TOOL.name)) {
 				return;
 			}
 			
-			var r_x = x + this.calcRotateDistanceFromX(w) + corner_offset + wholeLineWidth;
-			var r_y = y - corner_offset - wholeLineWidth;
-			var r_dx =  hitsRightEdge ? -0.5 : 0;
-			var r_dy = hitsTopEdge ? 0.5 : 0;
+			var rX = x + this.calculateRotateDistanceFromX(_width) + cornerOffset + wholeLineWidth;
+			var rY = y - corner_offset - wholeLineWidth;
+			var rDx =  hitsRightEdge ? -0.5 : 0;
+			var rDy = hitsTopEdge ? 0.5 : 0;
 
 			this.ctx.strokeStyle = "#000000";
-			this.ctx.fillStyle = "#d0d62a";
+			this.ctx.fillStyle = "#D0D62A";
 			this.ctx.lineWidth = wholeLineWidth;
 
-			//create path
+			// Create path
 			const circle = new Path2D();
-			circle.arc(r_x + r_dx * block_size, r_y + r_dy * block_size, block_size / 2, 0, 2 * Math.PI);
+			circle.arc(rX + rDx * blockSize, rY + rDy * blockSize, blockSize / 2, 0, 2 * Math.PI);
 
-			//draw
+			// Draw
 			this.ctx.fill(circle);
 			this.ctx.stroke(circle);
 
-			//register position
-			this.selected_obj_rotate_position = {
+			// Register position
+			this.selectedObjectRotatePosition = {
 				cursor: "pointer",
 				path: circle,
 			};
 
 		};
-		if (settings.enable_rotation == true) {
-			draw_rotation();
+		
+		if (settings.enableRotation == true) {
+			drawRotation();
 		}
 
-		if (settings.enable_controls == true) {
-			corner(x - corner_offset - wholeLineWidth, y - corner_offset - wholeLineWidth, hitsLeftEdge ? 0.5 : 0, hitsTopEdge ? 0.5 : 0, DRAG_TYPE_LEFT | DRAG_TYPE_TOP, 'nwse-resize');
-			corner(x + w + corner_offset + wholeLineWidth, y - corner_offset - wholeLineWidth, hitsRightEdge ? -0.5 : 0, hitsTopEdge ? 0.5 : 0, DRAG_TYPE_RIGHT | DRAG_TYPE_TOP, 'nesw-resize');
-			corner(x - corner_offset - wholeLineWidth, y + h + corner_offset + wholeLineWidth, hitsLeftEdge ? 0.5 : 0, hitsBottomEdge ? -0.5 : 0, DRAG_TYPE_LEFT | DRAG_TYPE_BOTTOM, 'nesw-resize');
-			corner(x + w + corner_offset + wholeLineWidth, y + h + corner_offset + wholeLineWidth, hitsRightEdge ? -0.5 : 0, hitsBottomEdge ? -0.5 : 0, DRAG_TYPE_RIGHT | DRAG_TYPE_BOTTOM, 'nwse-resize');
+		if (settings.enableControls == true) {
+			corner(x - cornerOffset - wholeLineWidth, y - cornerOffset - wholeLineWidth, hitsLeftEdge ? 0.5 : 0, hitsTopEdge ? 0.5 : 0, DRAG_TYPE_LEFT | DRAG_TYPE_TOP, 'nwse-resize');
+			corner(x + _width + cornerOffset + wholeLineWidth, y - cornerOffset - wholeLineWidth, hitsRightEdge ? -0.5 : 0, hitsTopEdge ? 0.5 : 0, DRAG_TYPE_RIGHT | DRAG_TYPE_TOP, 'nesw-resize');
+			corner(x - cornerOffset - wholeLineWidth, y + _height + cornerOffset + wholeLineWidth, hitsLeftEdge ? 0.5 : 0, hitsBottomEdge ? -0.5 : 0, DRAG_TYPE_LEFT | DRAG_TYPE_BOTTOM, 'nesw-resize');
+			corner(x + _width + cornerOffset + wholeLineWidth, y + _height + cornerOffset + wholeLineWidth, hitsRightEdge ? -0.5 : 0, hitsBottomEdge ? -0.5 : 0, DRAG_TYPE_RIGHT | DRAG_TYPE_BOTTOM, 'nwse-resize');
 		}
 
-		if (settings.enable_controls == true) {
-			//draw centers
+		if (settings.enableControls == true) {
+			// Draw centers
 			if (Math.abs(w) > block_size * 5) {
-				corner(x + w / 2, y - middle_offset - wholeLineWidth, 0, hitsTopEdge ? 0.5 : 0, DRAG_TYPE_TOP, 'ns-resize');
-				corner(x + w / 2, y + h + middle_offset + wholeLineWidth, 0, hitsBottomEdge ? -0.5 : 0, DRAG_TYPE_BOTTOM, 'ns-resize');
+				corner(x + _width / 2, y - middleOffset - wholeLineWidth, 0, hitsTopEdge ? 0.5 : 0, DRAG_TYPE_TOP, 'ns-resize');
+				corner(x + _width / 2, y + _height + middleOffset + wholeLineWidth, 0, hitsBottomEdge ? -0.5 : 0, DRAG_TYPE_BOTTOM, 'ns-resize');
 			}
+			
 			if (Math.abs(h) > block_size * 5) {
-				corner(x - middle_offset - wholeLineWidth, y + h / 2, hitsLeftEdge ? 0.5 : 0, 0, DRAG_TYPE_LEFT, 'ew-resize');
-				corner(x + w + middle_offset + wholeLineWidth, y + h / 2, hitsRightEdge ? -0.5 : 0, 0, DRAG_TYPE_RIGHT, 'ew-resize');
+				corner(x - middleOffset - wholeLineWidth, y + _height / 2, hitsLeftEdge ? 0.5 : 0, 0, DRAG_TYPE_LEFT, 'ew-resize');
+				corner(x + _width + middleOffset + wholeLineWidth, y + _height / 2, hitsRightEdge ? -0.5 : 0, 0, DRAG_TYPE_RIGHT, 'ew-resize');
 			}
 		}
 
-		//restore
+		// Restore
 		this.ctx.restore();
 	}
 
-	selected_object_actions(e) {
-		var settings = this.find_settings();
+	selectedObjectActions(e) {
+		var settings = this.findSettings();
 		var data = settings.data;
 
-		if(data == null){
+		if (data == null) {
 			return;
 		}
 
 		this.ctx.save();
+		
 		if (data.rotate != null && data.rotate != 0) {
 			this.ctx.translate(data.x + data.width / 2, data.y + data.height / 2);
 			this.ctx.rotate(data.rotate * Math.PI / 180);
@@ -372,81 +395,85 @@ class Base_selection_class {
 
 		var x = settings.data.x;
 		var y = settings.data.y;
-		var w = settings.data.width;
-		var h = settings.data.height;
+		var _width = settings.data.width;
+		var _height = settings.data.height;
 
-		//simplify checks
-		var event_type = e.type;
-		if(event_type == 'touchstart') event_type = 'mousedown';
-		if(event_type == 'touchmove') event_type = 'mousemove';
-		if(event_type == 'touchend') event_type = 'mouseup';
+		// Simplify checks
+		var eventType = e.type;
+		if (event_type == 'touchstart') eventType = 'mousedown';
+		if (event_type == 'touchmove') eventType = 'mousemove';
+		if (event_type == 'touchend') eventType = 'mouseup';
 
-		if (!this.is_drag && ['mousedown', 'mouseup'].includes(event_type))
+		if (!this.isDrag && ['mousedown', 'mouseup'].includes(eventType))
 			return;
 
 		const mainWrapper = document.getElementById('main_wrapper');
 		const defaultCursor = config.TOOL && config.TOOL.name === 'text' ? 'text' : 'default';
+		
 		if (mainWrapper.style.cursor != defaultCursor) {
 			mainWrapper.style.cursor = defaultCursor;
 		}
-		if (event_type == 'mousedown' && config.mouse.valid == false || settings.enable_controls == false) {
+		
+		if (eventType == 'mousedown' && config.mouse.valid == false || settings.enableControls == false) {
 			return;
 		}
 
 		var mouse = config.mouse;
-		const drag_type = this.selected_object_drag_type;
+		const dragType = this.selectedObjectDragType;
 
-		if(event_type == 'mousedown' && settings.data !== null){
-			this.click_details = {
+		if (eventType == 'mousedown' && settings.data !== null) {
+			this.clickDetails = {
 				x: settings.data.x,
 				y: settings.data.y,
 				width: settings.data.width,
 				height: settings.data.height,
 			};
-			this.current_angle = null;
+			
+			this.currentAngle = null;
 		}
-		if (event_type == 'mousemove' && this.mouse_lock == 'selected_object_actions' && this.is_drag) {
+		
+		if (eventType == 'mousemove' && this.mouseLock == 'selected_object_actions' && this.isDrag) {
 
-			const allowNegativeDimensions = settings.data.render_function
-				&& ['line', 'arrow', 'gradient'].includes(settings.data.render_function[0]);
+			const allowNegativeDimensions = settings.data.renderFunction
+				&& ['line', 'arrow', 'gradient'].includes(settings.data.renderFunction[0]);
 
 			mainWrapper.style.cursor = "pointer";
 			
-			var is_ctrl = false;
+			var isCtrl = false;
+			
 			if (e.ctrlKey == true || e.metaKey) {
-				is_ctrl = true;
+				isCtrl = true;
 			}
 
-			const is_drag_type_left = Math.floor(drag_type / DRAG_TYPE_LEFT) % 2 === 1;
-			const is_drag_type_right = Math.floor(drag_type / DRAG_TYPE_RIGHT) % 2 === 1;
-			const is_drag_type_top = Math.floor(drag_type / DRAG_TYPE_TOP) % 2 === 1;
-			const is_drag_type_bottom = Math.floor(drag_type / DRAG_TYPE_BOTTOM) % 2 === 1;
+			const isDragTypeLeft = Math.floor(dragType / DRAG_TYPE_LEFT) % 2 === 1;
+			const isDragTypeRight = Math.floor(dragType / DRAG_TYPE_RIGHT) % 2 === 1;
+			const isDragTypeTop = Math.floor(dragType / DRAG_TYPE_TOP) % 2 === 1;
+			const isDragTypeBottom = Math.floor(dragType / DRAG_TYPE_BOTTOM) % 2 === 1;
 
-			if(is_drag_type_left && is_drag_type_top) mainWrapper.style.cursor = "nwse-resize";
-			else if(is_drag_type_top && is_drag_type_right) mainWrapper.style.cursor = "nesw-resize";
-			else if(is_drag_type_right && is_drag_type_bottom) mainWrapper.style.cursor = "nwse-resize";
-			else if(is_drag_type_bottom && is_drag_type_left) mainWrapper.style.cursor = "nesw-resize";
-			else if(is_drag_type_top) mainWrapper.style.cursor = "ns-resize";
-			else if(is_drag_type_right) mainWrapper.style.cursor = "ew-resize";
-			else if(is_drag_type_bottom) mainWrapper.style.cursor = "ns-resize";
-			else if(is_drag_type_left) mainWrapper.style.cursor = "ew-resize";
+			if (isDragTypeLeft && isDragTypeTop) mainWrapper.style.cursor = "nwse-resize";
+			else if (isDragTypeTop && isDragTypeRight) mainWrapper.style.cursor = "nesw-resize";
+			else if (isDragTypeRight && isDragTypeBottom) mainWrapper.style.cursor = "nwse-resize";
+			else if (isDragTypeBottom && isDragTypeLeft) mainWrapper.style.cursor = "nesw-resize";
+			else if (isDragTypeTop) mainWrapper.style.cursor = "ns-resize";
+			else if (isDragTypeRight) mainWrapper.style.cursor = "ew-resize";
+			else if (isDragTypeBottom) mainWrapper.style.cursor = "ns-resize";
+			else if (isDragTypeLeft) mainWrapper.style.cursor = "ew-resize";
 
-			if(drag_type == 'rotate'){
-				//rotate
-				var dx = x + this.calcRotateDistanceFromX(w) - (x + w / 2);
-				var dy = h / 2;
-				var original_angle = Math.atan2(dy, dx) / Math.PI * 180; //compensate rotation icon angle
+			if (dragType == 'rotate') {
+				// Rotate
+				var dx = x + this.calculateRotateDistanceFromX(_width) - (x + _width / 2);
+				var dy = _height / 2;
+				var original_angle = Math.atan2(dy, dx) / Math.PI * 180; // Compensate rotation icon angle
 
-				var dx = mouse.x - (x + w / 2);
-				var dy = mouse.y - (y + h / 2);
-				var angle = Math.atan2(dy, dx) / Math.PI * 180 + original_angle;
+				var dx = mouse.x - (x + _width / 2);
+				var dy = mouse.y - (y + _height / 2);
+				var angle = Math.atan2(dy, dx) / Math.PI * 180 + originalAngle;
 
-				//settings.data.rotate = angle;
-				this.current_angle = angle;
+				// settings.data.rotate = angle;
+				this.currentAngle = angle;
 
-				config.need_render = true;
-			}
-			else if (e.buttons == 1 || typeof e.buttons == "undefined") {
+				config.needRender = true;
+			} else if (e.buttons == 1 || typeof e.buttons == "undefined") {
 				// Do transformations
 				var dx = Math.round(mouse.x - mouse.click_x);
 				var dy = Math.round(mouse.y - mouse.click_y);
@@ -457,94 +484,106 @@ class Base_selection_class {
 				if (is_drag_type_left)
 					width = this.click_details.width - dx;
 
-				// Keep ratio - (if drag_type power of 2, only dragging on single axis)
-				if (drag_type && (drag_type & (drag_type - 1)) !== 0 && (settings.keep_ratio == true && is_ctrl == false) 
-					|| (settings.keep_ratio !== true && is_ctrl == true)){
-					var ratio = this.click_details.width / this.click_details.height;
-					var width_new = Math.round(height * ratio);
-					var height_new = Math.round(width / ratio);
+				// Keep ratio - (If drag_type power of 2, only dragging on single axis)
+				if (dragType && (dragType & (dragType - 1)) !== 0 && (settings.keepRatio == true && isCtrl == false) 
+					|| (settings.keepRatio !== true && isCtrl == true)) {
+					var ratio = this.clickDetails.width / this.clickDetails.height;
+					var widthNew = Math.round(height * ratio);
+					var heightNew = Math.round(width / ratio);
 
-					if (Math.abs(width * 100 / width_new) > Math.abs(height * 100 / height_new)) {
-						height = height_new;
-					}
-					else {
-						width = width_new;
+					if (Math.abs(width * 100 / widthNew) > Math.abs(height * 100 / heightNew)) {
+						height = heightNew;
+					} else {
+						width = widthNew;
 					}
 				}
 
 				// Set values
-				settings.data.x = this.click_details.x;
-				settings.data.y = this.click_details.y;
-				if (is_drag_type_top)
-					settings.data.y = this.click_details.y - (height - this.click_details.height);
-				if (is_drag_type_left)
-					settings.data.x = this.click_details.x - (width - this.click_details.width);
-				if (is_drag_type_left || is_drag_type_right)
+				settings.data.x = this.clickDetails.x;
+				settings.data.y = this.clickDetails.y;
+				
+				if (isDragTypeTop)
+					settings.data.y = this.clickDetails.y - (height - this.clickDetails.height);
+				
+				if (isDragTypeLeft)
+					settings.data.x = this.clickDetails.x - (width - this.clickDetails.width);
+				
+				if (isDragTypeLeft || isDragTypeRight)
 					settings.data.width = width;
-				if (is_drag_type_top || is_drag_type_bottom)
+				
+				if (isDragTypeTop || isDragTypeBottom)
 					settings.data.height = height;
 
 				// Don't allow negative width/height on most layers
 				if (!allowNegativeDimensions) {
 					if (settings.data.width <= 0) {
 						settings.data.width = Math.abs(settings.data.width);
-						if (is_drag_type_left) {
+						
+						if (isDragTypeLeft) {
 							settings.data.x -= settings.data.width;
 						} else {
-							settings.data.x = this.click_details.x - settings.data.width;
+							settings.data.x = this.clickDetails.x - settings.data.width;
 						}
 					}
+					
 					if (settings.data.height <= 0) {
 						settings.data.height = Math.abs(settings.data.height);
-						if (is_drag_type_top) {
+						
+						if (isDragTypeTop) {
 							settings.data.y -= settings.data.height;
 						} else {
-							settings.data.y = this.click_details.y - settings.data.height;
+							settings.data.y = this.clickDetails.y - settings.data.height;
 						}
 					}
 				}
-				config.need_render = true;
+				
+				config.needRender = true;
 			}
+			
 			return;
 		}
-		if (event_type == 'mouseup' && this.mouse_lock == 'selected_object_actions') {
-			//reset
-			this.mouse_lock = null;
+		
+		if (eventType == 'mouseup' && this.mouseLock == 'selected_object_actions') {
+			// Reset
+			this.mouseLock = null;
 		}
 
-		if (!this.mouse_lock) {
-			//set mouse move cursor
-			if(settings.enable_move && mouse.x > x &&  mouse.x < x + w && mouse.y > y &&  mouse.y < y + h){
+		if (!this.mouseLock) {
+			// Set mouse move cursor
+			if (settings.enableMove && mouse.x > x && mouse.x < x + _width && mouse.y > y && mouse.y < y + _height) {
 				mainWrapper.style.cursor = "move";
 			}
 
-			for (let current_drag_type in this.selected_obj_positions) {
-				const position = this.selected_obj_positions[current_drag_type];
+			for (let currentDragType in this.selectedObjectPositions) {
+				const position = this.selectedObjectPositions[currentDragType];
+				
 				if (position.path && this.ctx.isPointInPath(position.path, mouse.x, mouse.y)) {
-					// match
-					if (event_type == 'mousedown') {
+					// Match
+					if (eventType == 'mousedown') {
 						if (e.buttons == 1 || typeof e.buttons == "undefined") {
-							this.mouse_lock = 'selected_object_actions';
-							this.selected_object_drag_type = current_drag_type;
+							this.mouseLock = 'selected_object_actions';
+							this.selectedObjectDragType = currentDragType;
 						}
 					}
-					if (event_type == 'mousemove') {
+					
+					if (eventType == 'mousemove') {
 						mainWrapper.style.cursor = position.cursor;
 					}
 				}
 			}
 
-			//rotate?
-			const position = this.selected_obj_rotate_position;
+			// Rotate?
+			const position = this.selectedObjectRotatePosition;
 			if (position.path && this.ctx.isPointInPath(position.path, mouse.x, mouse.y)) {
-				//match
-				if (event_type == 'mousedown') {
+				// Match
+				if (eventType == 'mousedown') {
 					if (e.buttons == 1 || typeof e.buttons == "undefined") {
-						this.mouse_lock = 'selected_object_actions';
-						this.selected_object_drag_type = "rotate";
+						this.mouseLock = 'selected_object_actions';
+						this.selectedObjectDragType = "rotate";
 					}
 				}
-				if (event_type == 'mousemove') {
+				
+				if (eventType == 'mousemove') {
 					mainWrapper.style.cursor = position.cursor;
 				}
 			}
@@ -555,4 +594,4 @@ class Base_selection_class {
 
 }
 
-export default Base_selection_class;
+export default BaseSelectionClass;
