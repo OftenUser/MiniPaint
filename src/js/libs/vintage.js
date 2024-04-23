@@ -2,191 +2,195 @@ import glfx from './glfx.js';
 import ImageFilters from './imagefilters.js';
 
 /**
- * adds vintage effect
+ * Adds vintage effect
  * 
  * @author ViliusL
  * 
  * Functions:
- * - adjust_color
- * - lower_contrast
+ * - adjustColor
+ * - lowerContrast
  * - blur
- * - light_leak
+ * - lightLeak
  * - chemicals
  * - exposure
  * - grains
- * - grains_big
+ * - grainsBig
  * - optics
  * - dusts
  *
  * Usage:	VINTAGE.___function___(canvas,, param1, param2, ...);
  * 
- * libs:		
+ * Libs:		
  * - imagefilters.js, url: https://github.com/arahaya/ImageFilters.js
  * - glfx.js url: http://evanw.github.com/glfx.js/
  */
-class Vintage_class {
+class VintageClass {
 
 	constructor(width, height) {
-		this.fx_filter = false;
-		this.exposure_rand = null;
+		this.fxFilter = false;
+		this.exposureRand = null;
 		this.lightLeakX = null;
 		this.lightLeakY = null;
 
-		this.reset_random_values(width, height);
+		this.resetRandomValues(width, height);
 	}
 
 	/**
-	 * apply all affect
+	 * Apply all affects
 	 * 
 	 * @param {canvas} canvas
 	 * @param {int} level 0-100
 	 */
-	apply_all(canvas, level) {
-		//adjust from scale [0-100] to our scale.
-		var red_offset = level * 1;	//[0, 100]
-		var contrast = level / 2; //[0, 50]
-		//var blur = level / 100; //[0, 1]
-		var light_leak = level * 1.5;  //[0, 150]
-		var de_saturation = level * 1; //[0, 100]
-		var exposure = level * 1.5; //[0, 150]
-		var grains = level / 2; //[0, 50]
-		var big_grains = level / 5; //[0, 20]
-		var vignette_size = level / 200; //[0, 0.5]
-		var vignette_amount = level / 142; //[0, 0.7]
-		var dust_level = level * 1; //[0, 100]
+	applyAll(canvas, level) {
+		// Adjust from scale [0-100] to our scale.
+		var redOffset = level * 1;	// [0, 100]
+		var contrast = level / 2; // [0, 50]
+		// var blur = level / 100; // [0, 1]
+		var lightLeak = level * 1.5;  // [0, 150]
+		var deSaturation = level * 1; // [0, 100]
+		var exposure = level * 1.5; // [0, 150]
+		var grains = level / 2; // [0, 50]
+		var bigGrains = level / 5; // [0, 20]
+		var vignetteSize = level / 200; // [0, 0.5]
+		var vignetteAmuont = level / 142; // [0, 0.7]
+		var dustLevel = level * 1; // [0, 100]
 
-		this.adjust_color(canvas, red_offset);
-		this.lower_contrast(canvas, contrast);
-		//this.blur(canvas, blur);
-		this.light_leak(canvas, light_leak);
-		this.chemicals(canvas, de_saturation);
+		this.adjustCFolor(canvas, redOffset);
+		this.lowerContrast(canvas, contrast);
+		// this.blur(canvas, blur);
+		this.lightLeak(canvas, lightLeak);
+		this.chemicals(canvas, deSaturation);
 		this.exposure(canvas, exposure);
 		this.grains(canvas, grains);
-		this.grains_big(canvas, big_grains);
-		this.optics(canvas, vignette_size, vignette_amount);
-		this.dusts(canvas, dust_level);
+		this.grainsBig(canvas, bigGrains);
+		this.optics(canvas, vignetteSize, vignetteAmount);
+		this.dusts(canvas, dustLevel);
 	}
 
 	/**
-	 * reset random values again.
+	 * Reset random values again.
 	 * 
 	 * @param {int} width
 	 * @param {int} height
 	 */
-	reset_random_values(width, height) {
-		this.exposure_rand = this.getRandomInt(1, 10);
+	resetRandomValues(width, height) {
+		this.exposureRand = this.getRandomInt(1, 10);
 		this.lightLeakX = this.getRandomInt(0, width);
 		this.lightLeakY = this.getRandomInt(0, height);
 	}
 
 	//increasing red color
-	adjust_color(canvas, level_red) {	//level = [0, 200], default 70
+	adjust_color(canvas, level_red) { // level = [0, 200], default 70
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
 		var param_green = 0;
 		var param_blue = 0;
-		var imageData = context.getImageData(0, 0, W, H);
-		var filtered = ImageFilters.ColorTransformFilter(imageData, 1, 1, 1, 1, level_red, param_green, param_blue, 1);
+		var imageData = context.getImageData(0, 0, _width, _height);
+		var filtered = ImageFilters.ColorTransformFilter(imageData, 1, 1, 1, 1, levelRed, paramGreen, paramBlue, 1);
 		context.putImageData(filtered, 0, 0);
 	}
 
-	//decreasing contrast
-	lower_contrast(canvas, level) {	//level = [0, 50], default 15
+	// Decreasing contrast
+	lowerContrast(canvas, level) { // level = [0, 50], default 15
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
-
-		var imageData = context.getImageData(0, 0, W, H);
+		var imageData = context.getImageData(0, 0, _width, _height);
 		var filtered = ImageFilters.BrightnessContrastPhotoshop(imageData, 0, -level);
 		context.putImageData(filtered, 0, 0);
 	}
 
-	//adding blur
-	blur(canvas, level) {	//level = [0, 2], default 0
+	// Adding blur
+	blur(canvas, level) { // level = [0, 2], default 0
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
-
+		var _width = canvas.width;
+		var _height = canvas.height;
 
 		if (level < 1)
 			return context;
-		var imageData = context.getImageData(0, 0, W, H);
+		
+		var imageData = context.getImageData(0, 0, _width, _height);
 		var filtered = ImageFilters.GaussianBlur(imageData, level);
 		context.putImageData(filtered, 0, 0);
 	}
 
-	//creating transparent #ffa500 radial gradients
-	light_leak(canvas, level) {	//level = [0, 150], default 90
+	// Creating transparent #FFA500 radial gradients
+	lightLeak(canvas, level) { // level = [0, 150], default 90
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
-		var click_x = this.lightLeakX;
-		var click_y = this.lightLeakY;
-		var distance = Math.min(W, H) * 0.6;
+		var clickX = this.lightLeakX;
+		var clickY = this.lightLeakY;
+		var distance = Math.min(_width, _height) * 0.6;
 		var radgrad = context.createRadialGradient(
-			click_x, click_y, distance * level / 255,
-			click_x, click_y, distance);
+			clickX, clickY, distance * level / 255,
+			clickX, clickY, distance);
 		radgrad.addColorStop(0, "rgba(255, 165, 0, " + level / 255 + ")");
 		radgrad.addColorStop(1, "rgba(255, 255, 255, 0)");
 
 		context.fillStyle = radgrad;
-		context.fillRect(0, 0, W, H);
+		context.fillRect(0, 0, _width, _height);
 	}
 
-	//de-saturate
-	chemicals(canvas, level) {	//level = [0, 100], default 40
+	// De-saturate
+	chemicals(canvas, level) { // level = [0, 100], default 40
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
-		var imageData = context.getImageData(0, 0, W, H);
+		var imageData = context.getImageData(0, 0, _width, _height);
 		var filtered = ImageFilters.HSLAdjustment(imageData, 0, -level, 0);
 		context.putImageData(filtered, 0, 0);
 	}
 
-	//creating transparent vertical black-to-white gradients
-	exposure(canvas, level) {		//level = [0, 150], default 80
+	// Creating transparent vertical black-to-white gradients
+	exposure(canvas, level) { // level = [0, 150], default 80
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
-		context.rect(0, 0, W, H);
-		var grd = context.createLinearGradient(0, 0, 0, H);
+		context.rect(0, 0, _width, _height);
+		var grd = context.createLinearGradient(0, 0, 0, _height);
+		
 		if (this.exposure_rand < 5) {
-			//dark at top
+			// Dark at top
 			grd.addColorStop(0, "rgba(0, 0, 0, " + level / 255 + ")");
 			grd.addColorStop(1, "rgba(255, 255, 255, " + level / 255 + ")");
-		}
-		else {
-			//bright at top
+		} else {
+			// Bright at top
 			grd.addColorStop(0, "rgba(255, 255, 255, " + level / 255 + ")");
 			grd.addColorStop(1, "rgba(0, 0, 0, " + level / 255 + ")");
 		}
+		
 		context.fillStyle = grd;
 		context.fill();
 	}
 
-	//add grains, noise
-	grains(canvas, level) {	//level = [0, 50], default 10
+	// Add grains, noise
+	grains(canvas, level) {	// level = [0, 50], default 10
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
 		if (level == 0)
 			return context;
-		var img = context.getImageData(0, 0, W, H);
+		
+		var img = context.getImageData(0, 0, _width, _height);
 		var imgData = img.data;
-		for (var j = 0; j < H; j++) {
-			for (var i = 0; i < W; i++) {
-				var x = (i + j * W) * 4;
+		
+		for (var j = 0; j < _height; j++) {
+			for (var i = 0; i < _width; i++) {
+				var x = (i + j * _width) * 4;
 				if (imgData[x + 3] == 0)
-					continue;	//transparent
-				//increase it's lightness
+					continue; // Transparent
+				
+				// Increase its lightness
 				var delta = this.getRandomInt(0, level);
+				
 				if (delta == 0)
 					continue;
 
@@ -194,102 +198,111 @@ class Vintage_class {
 					imgData[x] = -(imgData[x] - delta);
 				else
 					imgData[x] = imgData[x] - delta;
+				
 				if (imgData[x + 1] - delta < 0)
 					imgData[x + 1] = -(imgData[x + 1] - delta);
 				else
 					imgData[x + 1] = imgData[x + 1] - delta;
+				
 				if (imgData[x + 2] - delta < 0)
 					imgData[x + 2] = -(imgData[x + 2] - delta);
 				else
 					imgData[x + 2] = imgData[x + 2] - delta;
 			}
 		}
+		
 		context.putImageData(img, 0, 0);
 	}
 
-	//add big grains, noise
-	grains_big(canvas, level) {	//level = [0, 50], default 20
+	// Add big grains, noise
+	grainsBig(canvas, level) { // level = [0, 50], default 20
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
 		if (level == 0)
 			return context;
-		var n = W * H / 100 * level;	//density
+		
+		var n = W * H / 100 * level; // Density
 		var color = 200;
+		
 		for (var i = 0; i < n; i++) {
 			var power = this.getRandomInt(5, 10 + level);
 			var size = 2;
-			var x = this.getRandomInt(0, W);
-			var y = this.getRandomInt(0, H);
+			var x = this.getRandomInt(0, _width);
+			var y = this.getRandomInt(0, _height);
 			context.fillStyle = "rgba(" + color + ", " + color + ", " + color + ", " + power / 255 + ")";
 			context.fillRect(x, y, size, size);
 		}
 	}
 
-	//adding vignette effect - blurred dark borders
-	optics(canvas, param1, param2) {	//param1 [0, 0.5], param2 [0, 0.7], default 0.3, 0.5
+	// Adding vignette effect - Blurred dark borders
+	optics(canvas, param1, param2) { // param1 [0, 0.5], param2 [0, 0.7], default 0.3, 0.5
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
-		if (this.fx_filter == false) {
-			//init glfx lib
-			this.fx_filter = glfx.canvas();
+		if (this.fxFilter == false) {
+			// Init GLFX lib
+			this.fxFilter = glfx.canvas();
 		}
 
-		var texture = this.fx_filter.texture(context.getImageData(0, 0, W, H));
-		this.fx_filter.draw(texture).vignette(param1, param2).update();
-		context.drawImage(this.fx_filter, 0, 0);
+		var texture = this.fxFilter.texture(context.getImageData(0, 0, _width, _height));
+		this.fxFilter.draw(texture).vignette(param1, param2).update();
+		context.drawImage(this.fxFilter, 0, 0);
 	}
 
-	//add dust and hairs
-	dusts(canvas, level) {	//level = [0, 100], default 70
+	// Add dust and hairs
+	dusts(canvas, level) { // level = [0, 100], default 70
 		var context = canvas.getContext("2d");
-		var W = canvas.width;
-		var H = canvas.height;
+		var _width = canvas.width;
+		var _height = canvas.height;
 
-		var n = level / 100 * (W * H) / 1000;
-		//add dust
+		var n = level / 100 * (_width * _height) / 1000;
+		
+		// Add dust
 		context.fillStyle = "rgba(200, 200, 200, 0.3)";
+		
 		for (var i = 0; i < n; i++) {
-			var x = this.getRandomInt(0, W);
-			var y = this.getRandomInt(0, H);
+			var x = this.getRandomInt(0, _width);
+			var y = this.getRandomInt(0, _height);
 			var mode = this.getRandomInt(1, 2);
+			
 			if (mode == 1) {
-				var w = 1;
-				var h = this.getRandomInt(1, 3);
+				var width_ = 1;
+				var height_ = this.getRandomInt(1, 3);
+			} else if (mode == 2) {
+				var _width_ = this.getRandomInt(1, 3);
+				var _height_ = 1;
 			}
-			else if (mode == 2) {
-				var w = this.getRandomInt(1, 3);
-				var h = 1;
-			}
+			
 			context.beginPath();
-			context.rect(x, y, w, h);
+			context.rect(x, y, _width, _height);
 			context.fill();
 		}
 
-		//add hairs
+		// Add hairs
 		context.strokeStyle = "rgba(200, 200, 200, 0.2)";
+		
 		for (var i = 0; i < n / 20; i++) {
-			var x = this.getRandomInt(0, W);
-			var y = this.getRandomInt(0, H);
+			var x = this.getRandomInt(0, _width);
+			var y = this.getRandomInt(0, _height);
 			var radius = this.getRandomInt(5, 10);
-			var start_nr = this.getRandomInt(0, 20) / 10;
-			var start_angle = Math.PI * start_nr;
-			var end_angle = Math.PI * (start_nr + this.getRandomInt(7, 15) / 10);
+			var startNr = this.getRandomInt(0, 20) / 10;
+			var startAngle = Math.PI * startNr;
+			var endAngle = Math.PI * (startNr + this.getRandomInt(7, 15) / 10);
 			context.beginPath();
-			context.arc(x, y, radius, start_angle, end_angle);
+			context.arc(x, y, radius, startAngle, endAngle);
 			context.stroke();
 		}
 
 		return context;
 	}
 
-	//random number generator
+	// Random number generator
 	getRandomInt(min, max) {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 }
 
-export default Vintage_class;
+export default VintageClass;
