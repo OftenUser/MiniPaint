@@ -3,7 +3,6 @@ import config from './../../config.js';
 import BaseLayersClass from './../../core/base-layers.js';
 
 class LayerClearClass {
-
 	constructor() {
 		this.BaseLayers = new BaseLayersClass();
 	}
@@ -13,7 +12,6 @@ class LayerClearClass {
 			new app.Actions.ClearLayerAction(config.layer.id)
 		);
 	}
-
 }
 
 export default LayerClearClass;
