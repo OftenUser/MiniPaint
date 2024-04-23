@@ -1,97 +1,100 @@
 import config from './../../config.js';
-import Dialog_class from './../../libs/popup.js';
-import Helper_class from './../../libs/helpers.js';
-import Base_layers_class from './../../core/base-layers.js';
+import DialogClass from './../../libs/popup.js';
+import HelperClass from './../../libs/helpers.js';
+import BaseLayersClass from './../../core/base-layers.js';
 import alertify from './../../../../node_modules/alertifyjs/build/alertify.min.js';
-import Tools_settings_class from './../tools/settings.js';
+import ToolsSettingsClass from './../tools/settings.js';
 import app from './../../app.js';
 
-class View_guides_class {
-
-
+class ViewGuidesClass {
 	constructor() {
-		this.POP = new Dialog_class();
-		this.Base_layers = new Base_layers_class();
-		this.Tools_settings = new Tools_settings_class();
-		this.Helper = new Helper_class();
+		this.POP = new DialogClass();
+		this.BaseLayers = new BaseLayersClass();
+		this.ToolsSettings = new ToolsSettingsClass();
+		this.Helper = new HelperClass();
 	}
 
 	insert() {
 		var _this = this;
-		var units = this.Tools_settings.get_setting('default_units');
-		var resolution = this.Tools_settings.get_setting('resolution');
+		var units = this.ToolsSettings.getSetting('default_units');
+		var resolution = this.ToolsSettings.getSetting('resolution');
 
-		//convert units
+		// Convert units
 		var position = 20;
-		var position = this.Helper.get_user_unit(position, units, resolution);
+		var position = this.Helper.getUserUnit(position, units, resolution);
 
 		var settings = {
-			title: 'Insert guides',
+			title: 'Insert Guides',
 			params: [
 				{name: "type", title: "Type:", values: ["Vertical", "Horizontal"], value :"Vertical"},
 				{name: "position", title: "Position:",  value: position},
 			],
-			on_finish: function (params) {
-				_this.insert_handler(params);
+			on_finish: function(params) {
+				_this.insertHandler(params);
 			},
 		};
+		
 		this.POP.show(settings);
 	}
 
-	insert_handler(data){
+	insertHandler(data) {
 		var type = data.type;
 		var position = parseFloat(data.position);
-		var units = this.Tools_settings.get_setting('default_units');
-		var resolution = this.Tools_settings.get_setting('resolution');
+		var units = this.ToolsSettings.getSetting('default_units');
+		var resolution = this.ToolsSettings.getSetting('resolution');
 
-		//convert units
-		position = this.Helper.get_internal_unit(position, units, resolution);
+		// Convert units
+		position = this.Helper.getInternalUnit(position, units, resolution);
 
 		var x = null;
 		var y = null;
-		if(type == 'Vertical')
+		
+		if (type == 'Vertical')
 			x = position;
-		if(type == 'Horizontal')
+		
+		if (type == 'Horizontal')
 			y = position;
 
-		//update
+		// Update
 		config.guides.push({x: x, y: y});
 
-		if(config.guides_enabled == false){
-			//was disabled
-			config.guides_enabled = true;
+		if (config.guidesEnabled == false) {
+			// Was disabled
+			config.guidesEnabled = true;
 			this.Helper.setCookie('guides', 1);
 			alertify.warning('Guides enabled.');
 		}
 
-		config.need_render = true;
+		config.needRender = true;
 	}
 
-	update(){
+	update() {
 		var _this = this;
-		var units = this.Tools_settings.get_setting('default_units');
-		var resolution = this.Tools_settings.get_setting('resolution');
+		var units = this.ToolsSettings.getSetting('default_units');
+		var resolution = this.ToolsSettings.getSetting('resolution');
 
 		var params = [];
-		for(var i in config.guides){
+		
+		for (var i in config.guides) {
 			var guide = config.guides[i];
 
-			//convert units
+			// Convert units
 			var value = guide.x;
-			var value = this.Helper.get_user_unit(value, units, resolution);
+			var value = this.Helper.getUserUnit(value, units, resolution);
 
-			if(guide.y === null) {
+			if (guide.y === null) {
 				params.push({name: i, title: "Vertical:", value: value});
 			}
 		}
-		for(var i in config.guides){
+		
+		for (var i in config.guides) {
 			var guide = config.guides[i];
 
-			//convert units
+			// Convert units
 			var value = guide.y;
-			var value = this.Helper.get_user_unit(value, units, resolution);
+			var value = this.Helper.getUserUnit(value, units, resolution);
 
-			if(guide.x === null) {
+			if (guide.x === null) {
 				params.push({name: i, title: "Horizontal:", value: value});
 			}
 		}
@@ -99,24 +102,25 @@ class View_guides_class {
 		var settings = {
 			title: 'Update guides',
 			params: params,
-			on_finish: function (params) {
-				_this.update_handler(params);
+			on_finish: function(params) {
+				_this.updateHandler(params);
 			},
 		};
+		
 		this.POP.show(settings);
 	}
 
-	update_handler(data){
-		var units = this.Tools_settings.get_setting('default_units');
-		var resolution = this.Tools_settings.get_setting('resolution');
+	updateHandler(data) {
+		var units = this.ToolsSettings.getSetting('default_units');
+		var resolution = this.ToolsSettings.getSetting('resolution');
 
-		//update
+		// Update
 		for (var i in data) {
 			var key = parseInt(i);
 			var value = parseFloat(data[i]);
 
-			//convert units
-			value = this.Helper.get_internal_unit(value, units, resolution);
+			// Convert units
+			value = this.Helper.getInternalUnit(value, units, resolution);
 
 			if (config.guides[key].x === null)
 				config.guides[key].y = value;
@@ -124,23 +128,22 @@ class View_guides_class {
 				config.guides[key].x = value;
 		}
 
-		//remove empty
+		// Remove empty
 		for (var i = 0; i < config.guides.length; i++) {
-			if(config.guides[i].x === 0 || config.guides[i].y === 0
-				|| isNaN(config.guides[i].x) || isNaN( config.guides[i].y)){
+			if (config.guides[i].x === 0 || config.guides[i].y === 0
+				|| isNaN(config.guides[i].x) || isNaN(config.guides[i].y)) {
 				config.guides.splice(i, 1);
 				i--;
 			}
 		}
 
-		config.need_render = true;
+		config.needRender = true;
 	}
 
 	remove(params) {
 		config.guides = [];
-		config.need_render = true;
+		config.needRender = true;
 	}
-
 }
 
-export default View_guides_class;
+export default ViewGuidesClass;
