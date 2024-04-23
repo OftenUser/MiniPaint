@@ -1,12 +1,12 @@
 import app from './../../app.js';
 import config from './../../config.js';
-import Base_layers_class from './../../core/base-layers.js';
+import BaseLayersClass from './../../core/base-layers.js';
 import alertify from './../../../../node_modules/alertifyjs/build/alertify.min.js';
 
-class Image_flip_class {
+class ImageFlipClass {
 
 	constructor() {
-		this.Base_layers = new Base_layers_class();
+		this.BaseLayers = new BaseLayersClass();
 	}
 
 	vertical() {
@@ -23,11 +23,11 @@ class Image_flip_class {
 			return;
 		}
 
-		//get canvas from layer
-		var canvas = this.Base_layers.convert_layer_to_canvas(null, true);
+		// Get canvas from layer
+		var canvas = this.BaseLayers.convertLayerToCanvas(null, true);
 		var ctx = canvas.getContext("2d");
 
-		//create destination canvas
+		// Create destination canvas
 		var canvas2 = document.createElement('canvas');
 		canvas2.width = canvas.width;
 		canvas2.height = canvas.height;
@@ -35,22 +35,21 @@ class Image_flip_class {
 		canvas2.dataset.x = canvas.dataset.x;
 		canvas2.dataset.y = canvas.dataset.y;
 
-		//flip
+		// Flip
 		if (mode == 'vertical') {
 			ctx2.scale(1, -1);
 			ctx2.drawImage(canvas, 0, canvas2.height * -1);
-		}
-		else if (mode == 'horizontal') {
+		} else if (mode == 'horizontal') {
 			ctx2.scale(-1, 1);
 			ctx2.drawImage(canvas, canvas2.width * -1, 0);
 		}
 
-		//save
-		return app.State.do_action(
-			new app.Actions.Update_layer_image_action(canvas2)
+		// Save
+		return app.State.doAction(
+			new app.Actions.UpdateLayerImageAction(canvas2)
 		);
 	}
 
 }
 
-export default Image_flip_class;
+export default ImageFlipClass;
