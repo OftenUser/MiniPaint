@@ -1,19 +1,17 @@
 import app from './../../app.js';
 import config from './../../config.js';
-import Base_layers_class from './../../core/base-layers.js';
+import BaseLayersClass from './../../core/base-layers.js';
 
-class Layer_delete_class {
-
+class LayerDeleteClass {
 	constructor() {
-		this.Base_layers = new Base_layers_class();
+		this.BaseLayers = new BaseLayersClass();
 	}
 
 	delete() {
-		app.State.do_action(
-			new app.Actions.Delete_layer_action(config.layer.id)
+		app.State.doAction(
+			new app.Actions.DeleteLayerAction(config.layer.id)
 		);
 	}
-
 }
 
-export default Layer_delete_class;
+export default LayerDeleteClass;
