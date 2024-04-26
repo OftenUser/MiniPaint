@@ -1,111 +1,122 @@
 import config from './../config.js';
-import Base_tools_class from './../core/base-tools.js';
-import Base_layers_class from './../core/base-layers.js';
-import Helper_class from './../libs/helpers.js';
-import Base_gui_class from './../core/base-gui.js';
+import BaseToolsClass from './../core/base-tools.js';
+import BaseLayersClass from './../core/base-layers.js';
+import HelperClass from './../libs/helpers.js';
+import BaseGUIClass from './../core/base-gui.js';
 
-class Pick_color_class extends Base_tools_class {
-
+class PickColorClass extends BaseToolsClass {
 	constructor(ctx) {
 		super();
-		this.Base_layers = new Base_layers_class();
-		this.Helper = new Helper_class();
-		this.Base_gui = new Base_gui_class();
+		this.BaseLauers = new BaseLayersClass();
+		this.Helper = new HelperClass();
+		this.BaseGUI = new BaseGUIClass();
 		this.ctx = ctx;
 		this.name = 'pick_color';
 	}
 
 	dragStart(event) {
 		var _this = this;
+		
 		if (config.TOOL.name != _this.name)
 			return;
+		
 		_this.mousedown(event);
 	}
 
 	dragMove(event) {
 		var _this = this;
+		
 		if (config.TOOL.name != _this.name)
 			return;
+		
 		_this.mousemove(event);
 	}
 
 	load() {
 		var _this = this;
 
-		//mouse events
-		document.addEventListener('mousedown', function (event) {
+		// Mouse events
+		document.addEventListener('mousedown', function(event) {
 			_this.dragStart(event);
 		});
-		document.addEventListener('mousemove', function (event) {
+		
+		document.addEventListener('mousemove', function(event) {
 			_this.dragMove(event);
 		});
-		document.addEventListener('mouseup', function (event) {
-			var mouse = _this.get_mouse_info(event);
-			if (config.TOOL.name != _this.name || mouse.click_valid == false)
+		
+		document.addEventListener('mouseup', function(event) {
+			var mouse = _this.getMouseInfo(event);
+			
+			if (config.TOOL.name != _this.name || mouse.clickValid == false)
 				return;
-			_this.copy_color_to_clipboard();
+			
+			_this.copyColorToClipboard();
 		});
 
-		// collect touch events
-		document.addEventListener('touchstart', function (event) {
+		// Collect touch events
+		document.addEventListener('touchstart', function(event) {
 			_this.dragStart(event);
 		});
-		document.addEventListener('touchmove', function (event) {
+		
+		document.addEventListener('touchmove', function(event) {
 			_this.dragMove(event);
 		});
 	}
 
 	mousedown(e) {
-		var mouse = this.get_mouse_info(e);
-		if (mouse.click_valid == false) {
+		var mouse = this.getMouseInfo(e);
+		
+		if (mouse.clickValid == false) {
 			return;
 		}
 
-		this.pick_color(mouse);
+		this.pickColor(mouse);
 	}
 
 	mousemove(e) {
-		var mouse = this.get_mouse_info(e);
-		if (mouse.is_drag == false || mouse.click_valid == false) {
+		var mouse = this.getMouseInfo(e);
+		
+		if (mouse.isDrag == false || mouse.clickValid == false) {
 			return;
 		}
 
-		this.pick_color(mouse);
+		this.pickColor(mouse);
 	}
 
-	pick_color(mouse) {
+	pickColor(mouse) {
 		var params = this.getParams();
 
-		//get canvas from layer
+		// Get canvas from layer
 		if (params.global == false) {
-			//active layer
-			var canvas = this.Base_layers.convert_layer_to_canvas(config.layer.id, null, false);
+			// Active layer
+			var canvas = this.BaseLayers.convertLayerToCanvas(config.layer.id, null, false);
 			var ctx = canvas.getContext("2d");
-		}
-		else {
-			//global
+		} else {
+			// Global
 			var canvas = document.createElement('canvas');
 			var ctx = canvas.getContext("2d");
 			canvas.width = config.WIDTH;
 			canvas.height = config.HEIGHT;
-			this.Base_layers.convert_layers_to_canvas(ctx, null, false);
+			this.BaseLayers.convertLayersToCanvas(ctx, null, false);
 		}
-		//find color
+		
+		// Find color
 		var c = ctx.getImageData(mouse.x, mouse.y, 1, 1).data;
 		var hex = this.Helper.rgbToHex(c[0], c[1], c[2]);
 
-		const newColorDefinition = { hex };
+		const newColorDefinition = {hex};
+		
 		if (c[3] > 0) {
-			//set alpha
+			//Set alpha
 			newColorDefinition.a = c[3];
 		}
-		this.Base_gui.GUI_colors.set_color(newColorDefinition);
+		
+		this.BaseGUI.GUIColors.setColor(newColorDefinition);
 	}
 
-	copy_color_to_clipboard() {
+	copyColorToClipboard() {
 		navigator.clipboard.writeText(config.COLOR);
 	}
-
 }
 
-export default Pick_color_class;
+export default PickColorClass;
