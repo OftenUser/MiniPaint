@@ -1,70 +1,73 @@
 import app from './../app.js';
 import config from './../config.js';
-import Base_tools_class from './../core/base-tools.js';
-import Base_layers_class from './../core/base-layers.js';
-import Dialog_class from './../libs/popup.js';
-import GUI_tools_class from './../core/gui/gui-tools.js';
+import BaseToolsClass from './../core/base-tools.js';
+import BaseLayersClass from './../core/base-layers.js';
+import DialogClass from './../libs/popup.js';
+import GUIToolsClass from './../core/gui/gui-tools.js';
 
 var instance = null;
 
-class Shape_class extends Base_tools_class {
+class ShapeClass extends BaseToolsClass {
 
 	constructor(ctx) {
 		super();
 
-		//singleton
+		// Singleton
 		if (instance) {
 			return instance;
 		}
+		
 		instance = this;
 
-		this.Base_layers = new Base_layers_class();
-		this.GUI_tools = new GUI_tools_class();
-		this.POP = new Dialog_class();
+		this.BaseLayers = new BaseLayersClass();
+		this.GUITools = new GUIToolsClass();
+		this.POP = new DialogClass();
 		this.ctx = ctx;
 		this.name = 'shape';
 		this.layer = {};
-		this.preview_width = 150;
-		this.preview_height = 120;
+		this.previewWidth = 150;
+		this.previewHeight = 120;
 
-		this.set_events();
+		this.setEvents();
 	}
 
-	set_events() {
+	setEvents() {
 		document.addEventListener('keydown', (event) => {
 			var code = event.keyCode;
-			if (this.Helper.is_input(event.target))
+			
+			if (this.Helper.isInput(event.target))
 				return;
 
 			if (code == 72) {
-				//H
-				this.show_shapes();
+				// H
+				this.showShapes();
 			}
 		}, false);
 	}
 
 	load() {
-
+		// Nothing
 	}
 
-	on_activate() {
-		this.show_shapes();
+	onActivate() {
+		this.showShapes();
 	}
 
-	async show_shapes(){
+	async showShapes(){
 		var _this = this;
 		var html = '';
 
-		var data = this.get_shapes();
+		var data = this.getShapes();
 
 		for (var i in data) {
 			html += '<div class="item">';
-			html += '	<canvas id="c_' + data[i].key + '" width="' + this.preview_width + '" height="'
-				+ this.preview_height + '" class="effectsPreview" data-key="'
+			html += '	<canvas id="c_' + data[i].key + '" width="' + this.previewWidth + '" height="'
+				+ this.previewHeight + '" class="effectsPreview" data-key="'
 				+ data[i].key + '"></canvas>';
 			html += '<div class="preview-item-title">' + data[i].title + '</div>';
 			html += '</div>';
 		}
+		
 		for (var i = 0; i < 4; i++) {
 			html += '<div class="item"></div>';
 		}
@@ -72,37 +75,40 @@ class Shape_class extends Base_tools_class {
 		var settings = {
 			title: 'Shapes',
 			className: 'wide',
-			on_load: function (params, popup) {
+			on_load: function(params, popup) {
 				var node = document.createElement("div");
 				node.classList.add('flex-container');
 				node.innerHTML = html;
 				popup.el.querySelector('.dialog_content').appendChild(node);
-				//events
+				
+				// Events
 				var targets = popup.el.querySelectorAll('.item canvas');
+				
 				for (var i = 0; i < targets.length; i++) {
-					targets[i].addEventListener('click', function (event) {
-						//we have click
-						_this.GUI_tools.activate_tool(this.dataset.key);
+					targets[i].addEventListener('click', function(event) {
+						// We have click
+						_this.GUITools.activateTool(this.dataset.key);
 						_this.POP.hide();
 					});
 				}
 			},
 		};
+		
 		this.POP.show(settings);
 
-		//sleep, lets wait till DOM is finished
+		// Sleep, lets wait till DOM is finished
 		await new Promise(r => setTimeout(r, 10));
 
-		//draw demo thumbs
+		// Draw demo thumbs
 		for (var i in data) {
-			var function_name = 'demo';
-			var canvas = document.getElementById('c_'+data[i].key);
+			var functionName = 'demo';
+			var canvas = document.getElementById('c_' + data[i].key);
 			var ctx = canvas.getContext("2d");
 
-			if(typeof data[i].object[function_name] == "undefined")
+			if (typeof data[i].object[functionName] == "undefined")
 				continue;
 
-			data[i].object[function_name](ctx, 20, 20, this.preview_width - 40, this.preview_height - 40, null);
+			data[i].object[functionName](ctx, 20, 20, this.previewHeight - 40, this.previewHeight - 40, null);
 		}
 	}
 
