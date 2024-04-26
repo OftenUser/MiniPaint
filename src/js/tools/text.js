@@ -1,25 +1,25 @@
 import app from './../app.js';
 import config from './../config.js';
 import zoomView from './../libs/zoomView.js';
-import Base_tools_class from './../core/base-tools.js';
-import Base_selection_class from './../core/base-selection.js';
-import Base_layers_class from './../core/base-layers.js';
-import GUI_tools_class from './../core/gui/gui-tools.js';
-import Helper_class from './../libs/helpers.js';
-import Dialog_class from './../libs/popup.js';
+import BaseToolsClass from './../core/base-tools.js';
+import BaseSelectionClass from './../core/base-selection.js';
+import BaseLayersClass from './../core/base-layers.js';
+import GUIToolsClass from './../core/gui/gui-tools.js';
+import HelperClass from './../libs/helpers.js';
+import DialogClass from './../libs/popup.js';
 import WebFont from 'webfontloader';
 import alertify from './../../../node_modules/alertifyjs/build/alertify.min.js';
 
 /**
  * TODO
  * - Add leading, superscript, subscript
- * - Implement text direction (right to left, top to bottom, etc.); currently partial implementation
+ * - Implement text direction (right to left, top to bottom, etc.); Currently partial implementation
  * - Allow search & add google fonts
  * - Undo history
  */
 
 // Default text styling
-// WARNING - changing this could break backwards compatibility!
+// WARNING - Changing this could break backwards compatibility!
 // Defaults aren't saved in text layer in order to reduce data size and increase meta comparison performance.
 export const metaDefaults = {
 	size: 40,
@@ -49,9 +49,10 @@ fontLoadMap.set('Tahoma', true);
 fontLoadMap.set('Times New Roman', true);
 fontLoadMap.set('Verdana', true);
 
-function load_font_family({ family, variants }, successCallback) {
+function loadFontFamily({family, variants}, successCallback) {
 	if (fontLoadMap.get(family) == null) {
 		fontLoadMap.set(family, false);
+		
 		const loadPromise = new Promise((resolve, reject) => {
 			WebFont.load({
 				google: {
@@ -69,10 +70,13 @@ function load_font_family({ family, variants }, successCallback) {
 				}
 			});
 		});
+		
 		fontLoadPromiseMap.set(family, loadPromise);
 	}
+	
 	if (successCallback) {
 		const loadPromise = fontLoadPromiseMap.get(family);
+		
 		if (loadPromise) {
 			loadPromise.then(successCallback);
 		} else if (fontLoadMap.get(family) == true) {
@@ -91,7 +95,8 @@ kerningTestCanvas.width = 10;
 kerningTestCanvas.height = 10;
 kerningTestCanvas.style = 'font-kerning: normal; text-rendering: optimizeLegibility;';
 const kerningTestCtx = kerningTestCanvas.getContext('2d');
-class Font_metrics_class {
+
+class FontMetricsClass {
 	constructor(family, size) {
 		this.family = family || (family = "Arial");
 		this.size = parseInt(size) || (size = 12);
@@ -131,7 +136,7 @@ class Font_metrics_class {
 	 * @param {string} letter - The letter to check
 	 * @param {string} [baseline] - Baseline position override
 	 */
-	calculate_letter_bounds(letter, baseline) {
+	calculateLetterBounds(letter, baseline) {
 		baseline = baseline || 'alphabetic'
 		kerningTestCanvas.width = this.width;
 		kerningTestCanvas.height = this.height;
@@ -147,20 +152,24 @@ class Font_metrics_class {
 		const pixelLength = pixels.length;
 		let start = 0;
 		let end = this.height;
+		
 		for (let i = 0; i < pixelLength; i += 4) {
 			if (pixels[i + 3] !== 0) {
 				start = Math.floor(i / 4 / this.width);
 				break;
 			}
 		}
+		
 		for (let i = pixelLength - 4; i >= 0; i -= 4) {
 			if (pixels[i + 3] !== 0) {
 				end = Math.floor(i / 4 / this.width);
 				break;
 			}
 		}
+		
 		kerningTestCanvas.width = 10;
 		kerningTestCanvas.height = 10;
+		
 		return {
 			top: start,
 			bottom: end,
@@ -170,11 +179,12 @@ class Font_metrics_class {
 
 	/**
 	 * Calculate the kerning offset between two letters.
-	 * @param {string} letters - a two character string of the two letters to determine font kerning from. Returns the kerning offset that should be used to draw the 2nd letter. 
-	 * @param {object} flags - font style, such as bold or italic
+	 * @param {string} letters - A 2 character string of the 2 letters to determine font kerning from. Returns the kerning offset that should be used to draw the 2nd letter. 
+	 * @param {object} flags - Font style, such as bold or italic
 	 */
-	get_kerning_offset(letters, flags = {}) {
+	getKerningOffset(letters, flags = {}) {
 		let offset = this.kerningMap.get(letters);
+		
 		if (offset == null) {
 			kerningTestCtx.font =
 			' ' + (flags.italic ? 'italic' : '') +
@@ -184,6 +194,7 @@ class Font_metrics_class {
 			offset = kerningTestCtx.measureText(letters).width - (kerningTestCtx.measureText(letters[0]).width + kerningTestCtx.measureText(letters[1]).width);
 			this.kerningMap.set(letters, offset);
 		}
+		
 		return offset;
 	}
 }
@@ -191,7 +202,7 @@ class Font_metrics_class {
 /**
  * This class's job is to store and modify the internal JSON format of a text layer.
  */
-class Text_document_class {
+class TextDocumentClass {
 	constructor() {
 		this.lines = [];
 		this.on_change = null;
@@ -203,7 +214,7 @@ class Text_document_class {
 	/**
 	 * Returns the number of lines in the document.
 	 */
-	get_line_count() {
+	getLineCount() {
 		return this.lines.length;
 	}
 
@@ -211,19 +222,21 @@ class Text_document_class {
 	 * Returns the length of a given line
 	 * @param {number} lineNumber - The number of the line to get the length of
 	 */
-	get_line_character_count(lineNumber) {
-		return this.get_line_text(lineNumber).length;
+	getLineCharacterCount(lineNumber) {
+		return this.getLineText(lineNumber).length;
 	}
 	
 	/**
 	 * Returns the text string at a given line (ignores formatting).
 	 * @param {number} lineNumber - The number of the line to get the text from
 	 */
-	get_line_text(lineNumber) {
+	getLineText(lineNumber) {
 		let lineText = '';
+		
 		for (let i = 0; i < this.lines[lineNumber].length; i++) {
 			lineText += this.lines[lineNumber][i].text;
 		}
+		
 		return lineText;
 	}
 	
@@ -231,33 +244,40 @@ class Text_document_class {
 	 * Returns the position of the end of the the word at the line/character provided
 	 * @param {number} line - The reference line number (0 indexed) 
 	 * @param {number} character - The reference character position (0 indexed)
-	 * @param {boolean} noJump - Dont jump to the next word if at the end of current one
+	 * @param {boolean} noJump - Don't jump to the next word if at the end of current one
 	 */
-	get_word_end_position(line, character, noJump) {
+	getWordEndPosition(line, character, noJump) {
 		let newLine = line;
 		let newCharacter = character;
-		let fullText = this.get_line_text(newLine);
+		let fullText = this.getLineText(newLine);
+		
 		if (character === fullText.length && newLine < this.lines.length - 1) {
 			if (noJump) {
 				return { line, character };
 			}
+			
 			newLine += 1;
 			character = 0;
-			fullText = this.get_line_text(newLine);
+			fullText = this.getLineText(newLine);
 		}
+		
 		const text = fullText.slice(character);
+		
 		if (noJump && text[0] === ' ') {
-			return { line, character };
+			return {line, character};
 		}
+		
 		for (let i = 1; i < text.length; i++) {
 			if (text[i] === ' ') {
 				newCharacter = character + i;
 				break;
 			}
 		}
+		
 		if (newCharacter === character) {
 			newCharacter = fullText.length + 1;
 		}
+		
 		return {
 			line: newLine,
 			character: newCharacter
@@ -268,36 +288,45 @@ class Text_document_class {
 	 * Returns the position of the start of the the word at the line/character provided
 	 * @param {number} line - The reference line number (0 indexed) 
 	 * @param {number} character - The reference character position (0 indexed)
-	 * @param {boolean} noJump - Dont jump to the next word if at the end of current one
+	 * @param {boolean} noJump - Don't jump to the next word if at the end of current one
 	 */
-	get_word_start_position(line, character, noJump) {
+	getWordStartPosition(line, character, noJump) {
 		let newLine = line;
 		let newCharacter = character;
 		let isWrap = false;
+		
 		if (character === 0 && newLine > 0) {
 			if (noJump) {
-				return { line, character };
+				return {line, character};
 			}
+			
 			isWrap = true;
 			newLine -= 1;
 		}
-		const fullText = this.get_line_text(newLine);
+		
+		const fullText = this.getLineText(newLine);
+		
 		if (isWrap) {
 			character = fullText.length;
 		}
+		
 		const text = fullText.slice(0, character);
+		
 		if (noJump && text[text.length - 1] === ' ') {
 			return { line, character };
 		}
+		
 		for (let i = -1; i >= -text.length; i--) {
 			if (text[i + text.length - 1] === ' ') {
 				newCharacter = character + i;
 				break;
 			}
 		}
+		
 		if (newCharacter === character) {
 			newCharacter = 0;
 		}
+		
 		return {
 			line: newLine,
 			character: newCharacter
@@ -305,24 +334,29 @@ class Text_document_class {
 	}
 	
 	/**
-	 * Determine if the metadata (formatting) of two text spans is the same, usually used to determine if the spans can be merged together.
+	 * Determine if the metadata (formatting) of 2 text spans is the same, usually used to determine if the spans can be merged together.
 	 */
-	is_same_span_meta(meta1, meta2) {
+	isSameSpanMeta(meta1, meta2) {
 		const meta1Keys = Object.keys(meta1).sort();
 		const meta2Keys = Object.keys(meta2).sort();
+		
 		if (meta1Keys.length !== meta2Keys.length) {
 			return false;
 		}
+		
 		for (let i = 0; i < meta1Keys.length; i++) {
 			if (meta1Keys[i] !== meta2Keys[i]) {
 				return false;
 			}
+			
 			const meta1Value = meta1[meta1Keys[i]];
 			const meta2Value = meta2[meta2Keys[i]];
+			
 			if (JSON.stringify(meta1Value) !== JSON.stringify(meta2Value)) {
 				return false;
 			}
 		}
+		
 		return true;
 	}
 
@@ -332,7 +366,7 @@ class Text_document_class {
 	 * @param {number} character - The character position to insert at (0 indexed)
 	 * @param {object} meta - Metadata to associate with span
 	 */
-	insert_empty_span(line, character, meta) {
+	insertEmptySpan(line, character, meta) {
 		let insertedSpan = null;
 		const lineDef = this.lines[line];
 		let newLine = [];
@@ -342,33 +376,42 @@ class Text_document_class {
 			if (!wasInserted && character >= spanStartCharacter && character <= spanStartCharacter + span.text.length) {
 				let textBefore = span.text.slice(0, character - spanStartCharacter);
 				let textAfter = span.text.slice(character - spanStartCharacter);
+				
 				if (textBefore.length > 0) {
 					newLine.push({
 						text: textBefore,
 						meta: JSON.parse(JSON.stringify(span.meta))
 					});
 				}
+				
 				const newMeta = JSON.parse(JSON.stringify(span.meta));
+				
 				for (let metaKey in meta) {
 					newMeta[metaKey] = meta[metaKey];
 				}
+				
 				insertedSpan = {
 					text: '',
 					meta: newMeta
 				};
+				
 				newLine.push(insertedSpan);
+				
 				if (textAfter.length > 0) {
 					newLine.push({
 						text: textAfter,
 						meta: JSON.parse(JSON.stringify(span.meta))
 					});
 				}
+				
 				wasInserted = true;
 			} else {
 				newLine.push(span);
 			}
+			
 			spanStartCharacter += span.text.length;
 		}
+		
 		this.lines[line] = newLine;
 		return insertedSpan;
 	}
@@ -379,11 +422,11 @@ class Text_document_class {
 	 * @param {number} line - The line number to insert at (0 indexed) 
 	 * @param {number} character - The character position to insert at (0 indexed)
 	 */
-	insert_text(text, line, character) {
-
+	insertText(text, line, character) {
 		let insertedSpan;
+		
 		if (this.queuedMetaChanges) {
-			insertedSpan = this.insert_empty_span(line, character, this.queuedMetaChanges);
+			insertedSpan = this.insertEmptySpan(line, character, this.queuedMetaChanges);
 			this.queuedMetaChanges = null;
 		}
 
@@ -400,14 +443,17 @@ class Text_document_class {
 		for (let i = 0; i < insertLine.length; i++) {
 			const span = insertLine[i];
 			const spanLength = span.text.length;
+			
 			if (!modifyingSpan && (character > characterCount || character === 0) && character <= characterCount + spanLength) {
 				if (insertLine[i + 1] && insertLine[i + 1].text === '') {
 					modifyingSpan = insertLine[i + 1];
 				} else {
 					modifyingSpan = span;
 				}
+				
 				const textIdx = character - characterCount;
 				modifyingSpan.text = modifyingSpan.text.slice(0, textIdx) + text + modifyingSpan.text.slice(textIdx);
+				
 				if (!textHasNewline) {
 					newCharacter = characterCount + textIdx + text.length;
 					break;
@@ -419,6 +465,7 @@ class Text_document_class {
 					previousSpans.push(span);
 				}
 			}
+			
 			characterCount += spanLength;
 		}
 
@@ -426,13 +473,16 @@ class Text_document_class {
 		if (textHasNewline && modifyingSpan) {
 			const modifiedSpans = [];
 			const textLines = modifyingSpan.text.split('\n');
+			
 			for (let i = 0; i < textLines.length; i++) {
 				modifiedSpans.push({
 					meta: JSON.parse(JSON.stringify(modifyingSpan.meta)),
 					text: textLines[i]
 				});
 			}
+			
 			this.lines[line] = [...previousSpans, modifiedSpans.shift()];
+			
 			for (let i = 0; i < modifiedSpans.length; i++) {
 				if (i === modifiedSpans.length - 1) {
 					if (!modifiedSpans[i].text && nextSpans.length > 0) {
@@ -440,6 +490,7 @@ class Text_document_class {
 					} else {
 						this.lines.splice(line + i + 1, 0, [modifiedSpans[i], ...nextSpans]);
 					}
+					
 					newLine = line + i + 1;
 					newCharacter = text.length - 1 - text.lastIndexOf('\n');
 				} else {
@@ -449,8 +500,8 @@ class Text_document_class {
 		}
 
 		// Notify change
-		if (this.on_change) {
-			this.on_change(this.lines);
+		if (this.onChange) {
+			this.onChange(this.lines);
 		}
 
 		// Return end position
@@ -467,12 +518,12 @@ class Text_document_class {
 	 * @param {number} endLine - The ending line of the text range
 	 * @param {number} endCharacter - The character position at the ending line of the text range
 	 */
-	delete_range(startLine, startCharacter, endLine, endCharacter) {
+	deleteRange(startLine, startCharacter, endLine, endCharacter) {
 		// Check bounds
 		startLine >= 0 || (startLine = 0);
 		startCharacter >= 0 || (startCharacter = 0);
 		endLine < this.lines.length || (endLine = this.lines.length - 1);
-		const endLineCharacterCount = this.get_line_character_count(endLine);
+		const endLineCharacterCount = this.getLineCharacterCount(endLine);
 		endCharacter <= endLineCharacterCount || (
 			endCharacter = endLineCharacterCount
 		);
@@ -491,17 +542,21 @@ class Text_document_class {
 		let characterCount = 0;
 		let startSpan = null;
 		let startSpanDeleteIndex = 0;
+		
 		for (let i = 0; i < this.lines[startLine].length; i++) {
 			const span = this.lines[startLine][i];
 			const spanLength = span.text.length;
+			
 			if (!startSpan && (startCharacter > characterCount || startCharacter === 0) && startCharacter <= characterCount + spanLength) {
 				startSpan = span;
 				startSpanDeleteIndex = Math.max(0, startCharacter - characterCount);
 				break;
 			}
+			
 			if (!startSpan) {
 				beforeSpans.push(span);
 			}
+			
 			characterCount += spanLength;
 		}
 
@@ -509,26 +564,30 @@ class Text_document_class {
 		characterCount = 0;
 		let endSpan = null;    
 		let endSpanDeleteIndex = 0;
+		
 		for (let i = 0; i < this.lines[endLine].length; i++) {
 			const span = this.lines[endLine][i];
 			const spanLength = span.text.length;
+			
 			if (!endSpan && (endCharacter > characterCount || endCharacter === 0) && endCharacter <= characterCount + spanLength) {
 				endSpan = span;
 				endSpanDeleteIndex = Math.max(0, endCharacter - characterCount);
-			}
-			else if (endSpan) {
+			} else if (endSpan) {
 				afterSpans.push(span);
 			}
+			
 			characterCount += spanLength;
 		}
 
 		// Merge start and end lines
 		this.lines[startLine] = [...beforeSpans];
+		
 		if (startSpan === endSpan || this.is_same_span_meta(startSpan.meta, endSpan.meta)) {
 			const combinedSpans = {
 				meta: startSpan.meta,
 				text: startSpan.text.slice(0, startSpanDeleteIndex) + endSpan.text.slice(endSpanDeleteIndex)
 			};
+			
 			if (combinedSpans.text || (beforeSpans.length === 0 && afterSpans.length === 0)) {
 				this.lines[startLine].push(combinedSpans);
 			}
@@ -536,52 +595,60 @@ class Text_document_class {
 			const middleSpans = [];
 			let isAddedStartSpan = false;
 			let isAddedEndSpan = false;
+			
 			if (startSpan) {
 				startSpan.text = startSpan.text.slice(0, startSpanDeleteIndex);
+				
 				if (startSpan.text) {
 					middleSpans.push(startSpan);
 					isAddedStartSpan = true;
 				}
 			}
 			if (endSpan) {
+				
 				endSpan.text = endSpan.text.slice(endSpanDeleteIndex)
+				
 				if (endSpan.text || middleSpans.length === 0) {
 					middleSpans.push(endSpan);
 					isAddedEndSpan = true;
 				}
 			}
+			
 			if (isAddedStartSpan && !isAddedEndSpan) {
 				const afterSpan = afterSpans[0];
+				
 				if (afterSpan && this.is_same_span_meta(startSpan.meta, afterSpan.meta)) {
 					afterSpans.shift();
 					startSpan.text += afterSpan.text;
 				}
-			}
-			else if (isAddedEndSpan && !isAddedStartSpan) {
+			} else if (isAddedEndSpan && !isAddedStartSpan) {
 				const beforeSpan = beforeSpans[beforeSpans.length - 1];
+				
 				if (beforeSpan && this.is_same_span_meta(beforeSpan.meta, endSpan.meta)) {
 					beforeSpans.pop();
 					beforeSpan.text += endSpan.text;
 				}
-			}
-			else if (middleSpans.length === 0) {
+			} else if (middleSpans.length === 0) {
 				const beforeSpan = beforeSpans[beforeSpans.length - 1];
 				const afterSpan = afterSpans[0];
+				
 				if (beforeSpan && afterSpan && this.is_same_span_meta(beforeSpan.meta, afterSpan.meta)) {
 					afterSpans.shift();
 					beforeSpan.text += afterSpan.text;
 				}
 			}
+			
 			this.lines[startLine] = this.lines[startLine].concat(middleSpans);
 		}
+		
 		this.lines[startLine] = this.lines[startLine].concat(afterSpans);
 
 		// Delete lines in-between range
 		this.lines.splice(startLine + 1, endLine - startLine);
 
 		// Notify change
-		if (this.on_change) {
-			this.on_change(this.lines);
+		if (this.onChange) {
+			this.onChange(this.lines);
 		}
 
 		// Return new position
@@ -597,7 +664,7 @@ class Text_document_class {
 	 * @param {number} startLine - The line number to delete from
 	 * @param {number} startCharacter - The character position to delete from
 	 */
-	delete_character(forward, startLine, startCharacter) {
+	deleteCharacter(forward, startLine, startCharacter) {
 		let endLine = startLine;
 		let endCharacter = startCharacter;
 		
@@ -607,26 +674,29 @@ class Text_document_class {
 			if (startCharacter < this.get_line_character_count(startLine)) {
 				++endCharacter;
 			}
+				
 			// if there are Lines after this one we append it
 			else if (startLine < this.lines.length - 1) {
 				++endLine;
 				endCharacter = 0;
 			}
 		}
+			
 		// Delete backwards
 		else {
 			// If there are characters before the cursor on this line we remove one
 			if (startCharacter > 0) {
 				--startCharacter;
 			}
+				
 			// if there are rows before we append current to previous one
 			else if (startLine > 0) {
 				--startLine;
-				startCharacter = this.get_line_character_count(startLine);
+				startCharacter = this.getLineCharacterCount(startLine);
 			}
 		}
 
-		return this.delete_range(startLine, startCharacter, endLine, endCharacter);
+		return this.deleteRange(startLine, startCharacter, endLine, endCharacter);
 	}
 	
 	/**
@@ -636,30 +706,37 @@ class Text_document_class {
 	 * @param {number} endLine - The ending line of the text range
 	 * @param {number} endCharacter - The character position at the ending line of the text range
 	 */
-	get_meta_range(startLine, startCharacter, endLine, endCharacter) {
+	getMetaRange(startLine, startCharacter, endLine, endCharacter) {
 		// Check bounds
 		startLine >= 0 || (startLine = 0);
 		startCharacter >= 0 || (startCharacter = 0);
 		endLine < this.lines.length || (endLine = this.lines.length - 1);
 		const endLineCharacterCount = this.get_line_character_count(endLine);
+		
 		endCharacter <= endLineCharacterCount || (
 			endCharacter = endLineCharacterCount
 		);
+		
 		const isEmpty = startLine === endLine && startCharacter === endCharacter;
 
 		// Loop through all spans in range and collect meta values
 		const metaCollection = {};
+		
 		for (const metaKey in metaDefaults) {
 			metaCollection[metaKey] = [];
 		}
+		
 		let isInsideRange = false;
+		
 		for (let lineIndex = startLine; lineIndex <= endLine; lineIndex++) {
 			const line = this.lines[lineIndex];
 			let spanStartCharacter = 0;
 			let startSpan = null;
 			let endSpan = null;
+			
 			for (let spanIndex = 0; spanIndex < line.length; spanIndex++) {
 				const span = line[spanIndex];
+				
 				if (lineIndex === startLine) {
 					if (
 						(!isEmpty && startCharacter >= spanStartCharacter && startCharacter < spanStartCharacter + span.text.length) ||
@@ -670,6 +747,7 @@ class Text_document_class {
 						startSpan = span;
 					}
 				}
+				
 				if (lineIndex === endLine && isInsideRange) {
 					if (
 						(!isEmpty && endCharacter <= spanStartCharacter + span.text.length) ||
@@ -679,17 +757,21 @@ class Text_document_class {
 						isInsideRange = false;
 					}
 				}
+				
 				if (isInsideRange || startSpan === span || (!isEmpty && endSpan === span)) {
 					for (const metaKey in metaCollection) {
 						let metaValue = span.meta[metaKey];
+						
 						if (metaValue == null) {
 							metaValue = metaDefaults[metaKey];
 						}
+						
 						if (!metaCollection[metaKey].includes(metaValue)) {
 							metaCollection[metaKey].push(metaValue);
 						}
 					}
 				}
+				
 				spanStartCharacter += span.text.length;
 			}
 		}
@@ -700,6 +782,7 @@ class Text_document_class {
 				metaCollection[metaKey] = [metaDefaults[metaKey]];
 			}
 		}
+		
 		return metaCollection;
 	}
 
@@ -711,72 +794,87 @@ class Text_document_class {
 	 * @param {number} endCharacter - The character position at the ending line of the text range
 	 * @param {object} meta - The meta to set
 	 */
-	set_meta_range(startLine, startCharacter, endLine, endCharacter, meta) {
+	setMetaRange(startLine, startCharacter, endLine, endCharacter, meta) {
 		// Check bounds
 		startLine >= 0 || (startLine = 0);
 		startCharacter >= 0 || (startCharacter = 0);
 		endLine < this.lines.length || (endLine = this.lines.length - 1);
 		const endLineCharacterCount = this.get_line_character_count(endLine);
+		
 		endCharacter <= endLineCharacterCount || (
 			endCharacter = endLineCharacterCount
 		);
 
 		// Set meta of spans in selection
 		let isInsideRange = false;
+		
 		for (let lineIndex = startLine; lineIndex <= endLine; lineIndex++) {
 			const line = this.lines[lineIndex];
 			let newLine = [];
 			let spanStartCharacter = 0;
+			
 			for (let span of line) {
 				const spanText = span.text;
 				const spanLength = spanText.length;
+				
 				if (lineIndex === startLine) {
 					if (startCharacter <= spanStartCharacter) {
 						isInsideRange = true;
 					}
 				}
+				
 				if (lineIndex === endLine) {
 					if (endCharacter < spanStartCharacter + spanLength) {
 						isInsideRange = false;
 					}
 				}
+				
 				// Selection start splits the span it's inside of
 				let choppedStartCharacters = 0;
+				
 				if (startCharacter > spanStartCharacter && startCharacter < spanStartCharacter + spanLength && lineIndex === startLine) {
 					choppedStartCharacters = startCharacter - spanStartCharacter;
+					
 					newLine.push({
 						text: span.text.slice(0, startCharacter - spanStartCharacter),
 						meta: JSON.parse(JSON.stringify(span.meta))
 					});
+					
 					span.text = span.text.slice(startCharacter - spanStartCharacter);
 					isInsideRange = true;
 				}
+				
 				newLine.push(span);
+				
 				// Selection end splits the span it's inside of
 				if (endCharacter > spanStartCharacter && endCharacter < spanStartCharacter + spanLength && lineIndex === endLine) {
 					newLine.push({
 						text: span.text.slice(endCharacter - spanStartCharacter - choppedStartCharacters),
 						meta: JSON.parse(JSON.stringify(span.meta))
 					});
+					
 					span.text = span.text.slice(0, endCharacter - spanStartCharacter - choppedStartCharacters);
 					isInsideRange = true;
 				}
+				
 				// Add meta to span
 				if (isInsideRange) {
 					for (const metaKey in meta) {
 						span.meta[metaKey] = meta[metaKey];
 					}
 				}
+				
 				spanStartCharacter += spanLength;
 			}
+			
 			this.lines[lineIndex] = newLine;
 		}
 
 		this.normalize(startLine, endLine);
 
 		// Notify change
-		if (this.on_change) {
-			this.on_change(this.lines);
+		if (this.onChange) {
+			this.onChange(this.lines);
 		}
 	}
 
@@ -789,18 +887,22 @@ class Text_document_class {
 		for (let lineIndex = startLine; lineIndex <= endLine; lineIndex++) {
 			const line = this.lines[lineIndex];
 			let spanIndex = 0;
+			
 			for (spanIndex = 0; spanIndex < line.length; spanIndex++) {
 				const span1 = line[spanIndex];
 				const span2 = line[spanIndex + 1];
+				
 				if (span1 && span2 && this.is_same_span_meta(span1.meta, span2.meta)) {
 					line[spanIndex] = {
 						text: span1.text + span2.text,
 						meta: span1.meta
 					};
+					
 					line.splice(spanIndex + 1, 1);
 					spanIndex--;
 					continue;
 				}
+				
 				if (span1.text === '' && line.length > 1) {
 					line.splice(spanIndex, 1);
 					spanIndex--;
@@ -816,8 +918,8 @@ class Text_document_class {
 /**
  * This class represents a single selection range in a text editor's document.
  */
-class Text_selection_class {
-	constructor(/* Text_editor_class */ editor) {
+class TextSelectionClass {
+	constructor(/* TextEditorClass */ editor) {
 		this.editor = editor;
 		this.isVisible = false;
 		this.isCursorVisible = false;
@@ -835,26 +937,26 @@ class Text_selection_class {
 			character: 0
 		};
 
-		this.set_position(0, 0);
+		this.setPosition(0, 0);
 	}
 	
 	/**
 	 * Returns if the current text selection contains no characters
 	 * @returns {boolean}
 	 */
-	is_empty() {
+	isEmpty() {
 		return this.compare_position(this.start.line, this.start.character, this.end.line, this.end.character) === 0;
 	}
 	
 	/**
-	 * Determines the relative position of two line/character sets.
+	 * Determines the relative position of 2 line/character sets.
 	 * @param {number} line1
 	 * @param {number} character1 
 	 * @param {number} line2 
 	 * @param {number} character2
 	 * @returns {number} -1 if line1/character1 is less than line2/character2, 1 if greater, and 0 if equal
 	 */
-	compare_position(line1, character1, line2, character2) {
+	comparePosition(line1, character1, line2, character2) {
 		if (line1 < line2) {
 			return -1;
 		} else if (line1 > line2) {
@@ -876,10 +978,11 @@ class Text_selection_class {
 	 * @param {number} character - The character index to set the selection to
 	 * @param {boolean} [keepSelection] - If true, extends the current selection to the specified position. If false or undefined, sets an empty selection at that position. 
 	 */
-	set_position(line, character, keepSelection) {
+	setPosition(line, character, keepSelection) {
 		if (line == null) {
 			line = this.end.line;
 		}
+		
 		if (character == null) {
 			character = this.end.character;
 		}
@@ -889,14 +992,14 @@ class Text_selection_class {
 		character >= 0 || (character = 0);
 
 		// Check upper bounds
-		const lineCount = this.editor.document.get_line_count();
+		const lineCount = this.editor.document.getLineCount();
 		line < lineCount || (line = lineCount - 1);
-		const lineCharacterCount = this.editor.document.get_line_character_count(line);
+		const lineCharacterCount = this.editor.document.getLineCharacterCount(line);
 		character <= lineCharacterCount || (character = lineCharacterCount);
 
 		// Add to selection
 		if (keepSelection) {
-			const positionCompare = this.compare_position(
+			const positionCompare = this.comparePosition(
 				line,
 				character,
 				this.start.line,
@@ -920,16 +1023,19 @@ class Text_selection_class {
 			// Making sure that end is greater than start and swap if necessary
 			if (this.compare_position(this.start.line, this.start.character, this.end.line, this.end.character) > 0) {
 				this.isActiveSideEnd = !this.isActiveSideEnd;
+				
 				const temp = {
 					line: this.start.line,
 					character: this.start.character
 				}
+				
 				this.start.line = this.end.line;
 				this.start.character = this.end.character;
 				this.end.line = temp.line;
 				this.end.character = temp.character;
 			}
 		}
+			
 		// Empty cursor move
 		else {
 			this.isActiveSideEnd = true;
@@ -939,16 +1045,17 @@ class Text_selection_class {
 
 		// Reset cursor blink
 		this.isBlinkVisible = true;
+		
 		if (this.isVisible) {
-			this.start_blinking();
+			this.startBlinking();
 		}
 	}
 	
 	/**
 	 * Retrieves the position of the head of the selection (could be the start or end of the selection based on previous operations)
-	 * @returns {object} - { line, character }
+	 * @returns {object} - {line, character}
 	 */
-	get_position() {
+	getPosition() {
 		if (this.isActiveSideEnd) {
 			return {
 				character: this.end.character,
@@ -966,24 +1073,26 @@ class Text_selection_class {
 	 * Gets the plain text value in the current selection range.
 	 * @returns {string}
 	 */
-	get_text() {
+	getText() {
 		const positionCompare = this.compare_position(this.start.line, this.start.character, this.end.line, this.end.character);
 		const firstLine = positionCompare === 1 ? this.end.line : this.start.line;
 		const lastLine = positionCompare === 1 ? this.start.line : this.end.line;
 		const firstCharacter = positionCompare === 1 ? this.end.character : this.start.character;
 		const lastCharacter = positionCompare === 1 ? this.start.character : this.end.character;
 		let textLines = [];
+		
 		for (let i = firstLine; i <= lastLine; i++) {
 			if (i === firstLine && i === lastLine) {
-				textLines.push(this.editor.document.get_line_text(i).slice(firstCharacter, lastCharacter));
+				textLines.push(this.editor.document.getLineText(i).slice(firstCharacter, lastCharacter));
 			} else if (i === firstLine) {
-				textLines.push(this.editor.document.get_line_text(i).slice(firstCharacter));
+				textLines.push(this.editor.document.getLineText(i).slice(firstCharacter));
 			} else if (i === lastLine) {
-				textLines.push(this.editor.document.get_line_text(i).slice(0, lastCharacter));
+				textLines.push(this.editor.document.getLineText(i).slice(0, lastCharacter));
 			} else {
-				textLines.push(this.editor.document.get_line_text(i));
+				textLines.push(this.editor.document.getLineText(i));
 			}
 		}
+		
 		return textLines.join('\n');
 	}
 	
@@ -991,7 +1100,7 @@ class Text_selection_class {
 	 * Sets the visibility of the selection in the editor.
 	 * @param {boolean} isVisible 
 	 */
-	set_visible(isVisible) {
+	setVisible(isVisible) {
 		if (this.isVisible != isVisible) {
 			this.isVisible = isVisible;
 		}
@@ -1001,14 +1110,14 @@ class Text_selection_class {
 	 * Sets the visibility of the selection cursor in the editor.
 	 * @param {boolean} isVisible 
 	 */
-	set_cursor_visible(isVisible) {
+	setCursorVisible(isVisible) {
 		if (this.isCursorVisible != isVisible) {
 			this.isCursorVisible = isVisible;
 			if (this.isCursorVisible) {
 				this.isBlinkVisible = true;
-				this.start_blinking();
+				this.startBlinking();
 			} else {
-				this.stop_blinking();
+				this.stopBlinking();
 			}
 		}
 	}
@@ -1016,7 +1125,7 @@ class Text_selection_class {
 	/**
 	 * Starts the selection cursor blinking.
 	 */
-	start_blinking() {
+	startBlinking() {
 		clearInterval(this.blinkIntervalHandle);
 		this.blinkIntervalHandle = setInterval(this.blink.bind(this), this.blinkInterval);
 	}
@@ -1024,7 +1133,7 @@ class Text_selection_class {
 	/**
 	 * Stops the selection cursor blinking.
 	 */
-	stop_blinking() {
+	stopBlinking() {
 		clearInterval(this.blinkIntervalHandle);
 	}
 	
@@ -1041,7 +1150,7 @@ class Text_selection_class {
 			lineEnd: lastLine
 		});
 		*/
-		// this.Base_layers.render();
+		// this.BaseLayers.render();
 	}
 	
 	/**
@@ -1049,10 +1158,10 @@ class Text_selection_class {
 	 * @param {number} length - The number of lines to move 
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection
 	 */
-	move_line_previous(length, keepSelection) {
+	moveLinePrevious(length, keepSelection) {
 		length = length == null ? 1 : length;
-		const position = this.get_position();
-		this.set_position(position.line - length, null, keepSelection);
+		const position = this.getPosition();
+		this.setPosition(position.line - length, null, keepSelection);
 	}
 	
 	/**
@@ -1060,28 +1169,28 @@ class Text_selection_class {
 	 * @param {number} length - The number of lines to move 
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection
 	 */
-	move_line_next(length, keepSelection) {
+	moveLineNext(length, keepSelection) {
 		length = length == null ? 1 : length;
-		const position = this.get_position();
-		this.set_position(position.line + length, null, keepSelection);
+		const position = this.getPosition();
+		this.setPosition(position.line + length, null, keepSelection);
 	}
 		
 	/**
 	 * Moves to the start of the current line.
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection 
 	 */
-	move_line_start(keepSelection) {
-		const position = this.get_position();
-		this.set_position(position.line, 0, keepSelection);
+	moveLineStart(keepSelection) {
+		const position = this.getPosition();
+		this.setPosition(position.line, 0, keepSelection);
 	}
 
 	/**
 	 * Moves to the end of the current line.
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection 
 	 */
-	move_line_end(keepSelection) {
-		const position = this.get_position();
-		this.set_position(position.line, this.editor.document.get_line_character_count(position.line), keepSelection);
+	moveLineEnd(keepSelection) {
+		const position = this.getPosition();
+		this.setPosition(position.line, this.editor.document.getLineCharacterCount(position.line), keepSelection);
 	}
 	
 	/**
@@ -1089,15 +1198,15 @@ class Text_selection_class {
 	 * @param {number} length - The number of characters to move 
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection 
 	 */
-	move_character_previous(length, keepSelection) {
+	moveCharacterPrevious(length, keepSelection) {
 		length = length == null ? 1 : length;
-		const position = this.get_position();
+		const position = this.getPosition();
 		if (position.character - length < 0) {
 			if (position.line > 0) {
-				this.set_position(position.line - 1, this.editor.document.get_line_character_count(position.line - 1), keepSelection);
+				this.setPosition(position.line - 1, this.editor.document.getLineCharacterCount(position.line - 1), keepSelection);
 			}
 		} else {
-			this.set_position(position.line, position.character - length, keepSelection);
+			this.setPosition(position.line, position.character - length, keepSelection);
 		}
 	}
 	
@@ -1106,16 +1215,16 @@ class Text_selection_class {
 	 * @param {number} length - The number of characters to move 
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection 
 	 */
-	move_character_next(length, keepSelection) {
+	moveCharacterNext(length, keepSelection) {
 		length = length == null ? 1 : length;
-		const position = this.get_position();
-		const characterCount = this.editor.document.get_line_character_count(position.line);
+		const position = this.getPosition();
+		const characterCount = this.editor.document.getLineCharacterCount(position.line);
 		if (position.character + length > characterCount) {
 			if (position.line + 1 < this.editor.document.lines.length) {
-				this.set_position(position.line + 1, 0, keepSelection);
+				this.setPosition(position.line + 1, 0, keepSelection);
 			}
 		} else {
-			this.set_position(position.line, position.character + length, keepSelection);
+			this.setPosition(position.line, position.character + length, keepSelection);
 		}
 	}
 
@@ -1123,20 +1232,20 @@ class Text_selection_class {
 	 * Moves the cursor to the beginning of the current word or previous word, handles line wrapping.
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection 
 	 */
-	move_word_previous(keepSelection) {
-		const position = this.get_position();
-		const newPosition = this.editor.document.get_word_start_position(position.line, position.character);
-		this.set_position(newPosition.line, newPosition.character, keepSelection);
+	moveWordPrevious(keepSelection) {
+		const position = this.getPosition();
+		const newPosition = this.editor.document.getWordStartPosition(position.line, position.character);
+		this.setPosition(newPosition.line, newPosition.character, keepSelection);
 	}
 
 	/**
 	 * Moves the cursor to the end of the current word or next word, handles line wrapping.
 	 * @param {boolean} keepSelection - Whether to move to an empty selection or extend the current selection 
 	 */
-	move_word_next(keepSelection) {
-		const position = this.get_position();
-		const newPosition = this.editor.document.get_word_end_position(position.line, position.character);
-		this.set_position(newPosition.line, newPosition.character, keepSelection);
+	moveWordNext(keepSelection) {
+		const position = this.getPosition();
+		const newPosition = this.editor.document.getWordEndPosition(position.line, position.character);
+		this.setPosition(newPosition.line, newPosition.character, keepSelection);
 	}
 }
 
@@ -1144,7 +1253,7 @@ class Text_selection_class {
 /**
  * This class handles rendering a text layer and editing it based on keyboard/mouse/touch controls
  */
-class Text_editor_class {
+class TextEditorClass {
 	constructor(options) {
 		options = options || {};
 
@@ -1181,16 +1290,16 @@ class Text_editor_class {
 		this.focused = false;
 		
 		// Text document for this editor
-		this.document = new Text_document_class();
-		this.document.lines = [[{ text: '', meta: {} }]];
+		this.document = new TextDocumentClass();
+		this.document.lines = [[{text: '', meta: {}}]];
 		this.wrappedLines = [[]];
 
 		// Text selection for this editor
-		this.selection = new Text_selection_class(this);
+		this.selection = new TextSelectionClass(this);
 
 		// The layer associated with this editor (so data can be updated)
 		this.layer = null;
-		this.document.on_change = () => {
+		this.document.onChange = () => {
 			this.layer.data = this.document.lines;
 		};
 	}
@@ -1199,19 +1308,21 @@ class Text_editor_class {
 	 * Sets the lines of the document (from layer data)
 	 * @param {array} lines 
 	 */
-	set_lines(lines) {
-		this.document.lines = lines || [[{ text: '', meta: {} }]];
+	setLines(lines) {
+		this.document.lines = lines || [[{text: '', meta: {}}]];
 	}
 
 	/**
 	 * Returns the text string at a given line wrap (ignores formatting).
 	 * @param {object} wrap - The wrap definition 
 	 */
-	get_wrap_text(wrap) {
+	getWrapText(wrap) {
 		let wrapText = '';
+		
 		for (let i = 0; i < wrap.spans.length; i++) {
 			wrapText += wrap.spans[i].text;
 		}
+		
 		return wrapText;
 	}
 
@@ -1220,37 +1331,43 @@ class Text_editor_class {
 	 * @param {object} span - The span to calculate metrics for
 	 * @param {boolean} noCache - Skip caching if the metrics is expected to change in the future (e.g. font family not loaded yet.) 
 	 */
-	get_span_font_metrics(span, noCache) {
+	getSpanFontMetrics(span, noCache) {
 		const fontSize = (span.meta.size || metaDefaults.size);
 		const fontName = (span.meta.family || metaDefaults.family);
 		let fontMetrics = fontMetricsMap.get(fontName + '_' + fontSize);
+		
 		if (!fontMetrics) {
-			fontMetrics = new Font_metrics_class(fontName, fontSize);
+			fontMetrics = new FontMetricsClass(fontName, fontSize);
+			
 			if (!noCache) {
 				fontMetricsMap.set(fontName + '_' + fontSize, fontMetrics);
 			}
 		}
+		
 		return fontMetrics;
 	}
 
 	/**
 	 * Returns the complete text of the document.
 	 */
-	get_complete_text() {
+	getCompleteText() {
 		let completeText = '';
+		
 		for (let line of this.document.lines) {
 			for (let span of line) {
 					completeText += span.text;
 			}
+			
 			if (this.document.lines.indexOf(line) !== this.document.lines.length - 1) {
 					completeText += '\n';
 			}
 		}
+		
 		return completeText;
 	}
 
-	replace_entire_IME_text(beforeTempText, newText) {
-		const cursorPosition = this.selection.get_position();
+	replaceEntireIMEText(beforeTempText, newText) {
+		const cursorPosition = this.selection.getPosition();
 		let allText = beforeTempText;
 		let lines = allText.split('\n');
 		let currentLineText = lines[cursorPosition.line];
@@ -1260,95 +1377,98 @@ class Text_editor_class {
 		lines[cursorPosition.line] = updatedLineText;
 
 		const newLines = lines.map(lineText => {
-				return [{ text: lineText, meta: {} }];
+				return [{text: lineText, meta: {}}];
 		});
-		this.set_lines(newLines);
+		
+		this.setLines(newLines);
 		this.hasValueChanged = true;
 	}
 
-	set_IME_position(newText) {
-		const cursorPosition = this.selection.get_position();
+	setIMEPosition(newText) {
+		const cursorPosition = this.selection.getPosition();
 		let newTextLines = newText.split('\n');
 		let newCursorLine = cursorPosition.line + newTextLines.length - 1;
 		let newCursorCharacter = newText.length;
-		this.selection.set_position(newCursorLine, newCursorCharacter + cursorPosition.character);
+		this.selection.setPosition(newCursorLine, newCursorCharacter + cursorPosition.character);
 		this.hasValueChanged = true;
 	}
 
-
-
-	insert_text_at_current_position(text) {
-		if (!this.selection.is_empty()) {
-			this.delete_character_at_current_position();
+	insertTextAtCurrentPosition(text) {
+		if (!this.selection.isEmpty()) {
+			this.deleteCharacterAtCurrentPosition();
 		}
-		const position = this.selection.get_position();
-		const newPosition = this.document.insert_text(text, position.line, position.character);
-		this.selection.set_position(newPosition.line, newPosition.character);
+		
+		const position = this.selection.getPosition();
+		const newPosition = this.document.insertText(text, position.line, position.character);
+		this.selection.setPosition(newPosition.line, newPosition.character);
 		this.hasValueChanged = true;
 	}
 	
-	delete_character_at_current_position(forward) {
+	deleteCharacterAtCurrentPosition(forward) {
 		let newPosition;
-		if (this.selection.is_empty()) {
-			const position = this.selection.get_position();
-			newPosition = this.document.delete_character(forward, position.line, position.character);
+		
+		if (this.selection.isEmpty()) {
+			const position = this.selection.getPosition();
+			newPosition = this.document.deleteCharacter(forward, position.line, position.character);
 		} else {
-			newPosition = this.document.delete_range(
+			newPosition = this.document.deleteRange(
 				this.selection.start.line,
 				this.selection.start.character,
 				this.selection.end.line,
 				this.selection.end.character
 			);
 		}
-		this.selection.set_position(newPosition.line, newPosition.character);
+		
+		this.selection.setPosition(newPosition.line, newPosition.character);
 		this.hasValueChanged = true;
 	}
 
-	delete_selection() {
-		let newPosition = this.document.delete_range(
+	deleteSelection() {
+		let newPosition = this.document.deleteRange(
 			this.selection.start.line,
 			this.selection.start.character,
 			this.selection.end.line,
 			this.selection.end.character
 		);
-		this.selection.set_position(newPosition.line, newPosition.character);
+		
+		this.selection.setPosition(newPosition.line, newPosition.character);
 		this.hasValueChanged = true;
 	}
 
-	trigger_cursor_start(layer, layerX, layerY) {
+	triggerCursorStart(layer, layerX, layerY) {
 		this.isMouseSelectionActive = true;
 		this.mouseSelectionStartX = layerX;
 		this.mouseSelectionStartY = layerY;
-		const cursorStart = this.get_cursor_position_from_absolute_position(layer, layerX, layerY);
+		const cursorStart = this.getCursorPositionFromAbsolutePosition(layer, layerX, layerY);
 		this.mouseSelectionStartLine = cursorStart.line;
 		this.mouseSelectionStartCharacter = cursorStart.character;
-		this.selection.set_position(cursorStart.line, cursorStart.character, false);
+		this.selection.setPosition(cursorStart.line, cursorStart.character, false);
 	}
 	
-	trigger_cursor_move(layer, layerX, layerY) {
+	triggerCursorMove(layer, layerX, layerY) {
 		const isInsideCanvas = true; // layerX > 0 && layerY > 0 && layerX < this.lastCalculatedLayerWidth && layerY < this.lastCalculatedLayerHeight;
 		if (this.isMouseSelectionActive && isInsideCanvas) {
 			this.mouseSelectionMoveX = layerX;
 			this.mouseSelectionMoveY = layerY;
-			const cursorEnd = this.get_cursor_position_from_absolute_position(layer, layerX, layerY);
-			this.selection.set_position(this.mouseSelectionStartLine, this.mouseSelectionStartCharacter, false);
-			this.selection.set_position(cursorEnd.line, cursorEnd.character, true);
+			const cursorEnd = this.getCursorPositionFromAbsolutePosition(layer, layerX, layerY);
+			this.selection.setPosition(this.mouseSelectionStartLine, this.mouseSelectionStartCharacter, false);
+			this.selection.setPosition(cursorEnd.line, cursorEnd.character, true);
 		}
 	}
 	
-	trigger_cursor_end() {
+	triggerCursorEnd() {
 		this.isMouseSelectionActive = false;
 		this.mouseSelectionMoveX = null;
 		this.mouseSelectionMoveY = null;
 	}
 	
-	get_cursor_position_from_absolute_position(layer, x, y) {
+	getCursorPositionFromAbsolutePosition(layer, x, y) {
 		let line = -1;
 		let character = -1;
 
 		if (this.lineRenderInfo) {
-			const textDirection = layer.params.text_direction;
-			const wrapDirection = layer.params.wrap_direction;
+			const textDirection = layer.params.textDirection;
+			const wrapDirection = layer.params.wrapDirection;
 			const isHorizontalTextDirection = ['ltr', 'rtl'].includes(textDirection);
 			const isNegativeTextDirection = ['rtl', 'btt'].includes(textDirection);
 
@@ -1359,58 +1479,73 @@ class Text_editor_class {
 			let wrapRelativeIndex = -1;
 		
 			let globalWrapIndex = 0;
+			
 			for (let [lineIndex, lineInfo] of this.lineRenderInfo.lines.entries()) {
 				wrapRelativeIndex = 0;
+				
 				for (let wrap of lineInfo.wraps) {
 					if (wrapPosition < wrapSizes[globalWrapIndex].offset + wrapSizes[globalWrapIndex].size) {
 						line = lineIndex;
 						break;
 					}
+					
 					globalWrapIndex++;
 					wrapRelativeIndex++;
 				}
+				
 				if (line > -1) {
 					break;
 				}
 			}
+			
 			if (line === -1) {
 				line = this.lineRenderInfo.lines.length - 1;
 				wrapRelativeIndex = -1;
 			}
+			
 			const wraps = this.lineRenderInfo.lines[line].wraps;
+			
 			if (wrapRelativeIndex === -1) {
 				wrapRelativeIndex = wraps.length - 1;
 			}
+			
 			let previousWrapCharacterCount = 0;
+			
 			for (let w = 0; w < wrapRelativeIndex; w++) {
-				previousWrapCharacterCount += this.get_wrap_text(wraps[w]).length;
+				previousWrapCharacterCount += this.getWrapText(wraps[w]).length;
 			}
-			const characterCount = this.get_wrap_text(wraps[wrapRelativeIndex]).length;
+			
+			const characterCount = this.getWrapText(wraps[wrapRelativeIndex]).length;
 			const characterOffsets = wraps[wrapRelativeIndex].characterOffsets;
+			
 			for (let characterNumber = 0; characterNumber < characterCount; characterNumber++) {
 				const leftPosition = characterOffsets[characterNumber];
 				const rightPosition = characterOffsets[characterNumber + 1];
+				
 				if (characterPosition <= leftPosition + ((rightPosition - leftPosition) * 0.5)) {
 					character = previousWrapCharacterCount + characterNumber;
 					break;
 				}
+				
 				if (characterNumber === characterCount - 1 && character === -1) {
 					character = previousWrapCharacterCount + characterCount;
 				}
 			}
+			
 			if (character === -1) {
-				character = this.document.get_line_character_count(line);
+				character = this.document.getLineCharacterCount(line);
 			}
 		}
-		return { line, character };
+		
+		return {line, character};
 	}
 
-	calculate_text_placement(ctx, layer) {
+	calculateTextPlacement(ctx, layer) {
 		const boundary = layer.params.boundary;
-		const textDirection = layer.params.text_direction;
-		const wrapDirection = layer.params.wrap_direction;
-		const halign = layer.params.halign;
-		const valign = layer.params.valign;
+		const textDirection = layer.params.textDirection;
+		const wrapDirection = layer.params.wrapDirection;
+		const horizontalAlign = layer.params.halign;
+		const verticalAlign = layer.params.valign;
 		const isHorizontalTextDirection = ['ltr', 'rtl'].includes(textDirection);
 		const isNegativeTextDirection = ['rtl', 'btt'].includes(textDirection);
 
@@ -1423,6 +1558,7 @@ class Text_editor_class {
 			wrapSizes: [],
 			lines: []
 		};
+		
 		for (let line of this.document.lines) {
 			let wrapAccumulativeSize = 0;
 			let wrapCharacterOffsets = [0];
@@ -1438,7 +1574,8 @@ class Text_editor_class {
 				const kerning = span.meta.kerning || metaDefaults.kerning;
 				const family = span.meta.family || metaDefaults.family;
 				const size = span.meta.size || metaDefaults.size;
-				fontMetrics = this.get_span_font_metrics(span, !fontLoadMap.get(family));
+				fontMetrics = this.getSpanFontMetrics(span, !fontLoadMap.get(family));
+				
 				if (isHorizontalTextDirection) {
 					ctx.font =
 						' ' + (span.meta.italic ? 'italic' : '') +
@@ -1446,20 +1583,26 @@ class Text_editor_class {
 						' ' + size + 'px' +
 						' ' + family;
 				}
+				
 				for (let c = 0; c < span.text.length; c++) {
 					character = span.text[c];
 					if (layer.params.kerning === 'metrics') {
 						nextCharacter = span.text[c + 1];
+						
 						if (!nextCharacter && c === span.text.length - 1 && currentWrapSpans[s + 1]) {
 							const nextSpan = currentWrapSpans[s + 1];
+							
 							if (family === (nextSpan.meta.family || metaDefaults.family) && size === (nextSpan.meta.size || metaDefaults.size)) {
 								nextCharacter = nextSpan.text[0];
 							}
 						}
-						fontKerning = isHorizontalTextDirection && nextCharacter ? fontMetrics.get_kerning_offset(character + nextCharacter) : 0;
+						
+						fontKerning = isHorizontalTextDirection && nextCharacter ? fontMetrics.getKerningOffset(character + nextCharacter) : 0;
 					}
+					
 					const characterSize = isHorizontalTextDirection ? ctx.measureText(character).width : fontMetrics.height;
 					wrapAccumulativeSize += characterSize + fontKerning + kerning;
+					
 					if (boundary !== 'dynamic' && wrapAccumulativeSize > textDirectionMaxSize && ![' ', '-'].includes(character)) {
 						// Find last span with space
 						let dividerPosition = -1;
@@ -1469,27 +1612,33 @@ class Text_editor_class {
 							const backwardsSpanText = (bs === s) ? backwardsSpan.text.substring(0, c) : backwardsSpan.text;
 							dividerPosition = backwardsSpanText.lastIndexOf(' ');
 							const dashPosition = backwardsSpanText.lastIndexOf('-');
+							
 							if (dashPosition > dividerPosition) {
 								dividerPosition = dashPosition;
 							}
+							
 							if (dividerPosition > -1) {
 								break;
 							}
 						}
+						
 						let beforeSpans = [];
 						let afterSpans = [];
+						
 						// Found a previous span on the current line wrap that contains a space, split the line
 						if (dividerPosition > -1) {
 							beforeSpans = currentWrapSpans.slice(0, bs);
 							afterSpans = currentWrapSpans.slice(bs + 1);
 							const beforeText = currentWrapSpans[bs].text.substring(0, dividerPosition + 1);
 							const afterText = currentWrapSpans[bs].text.substring(dividerPosition + 1);
+							
 							if (beforeText.length > 0) {
 								beforeSpans.push({
 									text: beforeText,
 									meta: currentWrapSpans[bs].meta
 								});
 							}
+							
 							if (afterText.length > 0) {
 								afterSpans.unshift({
 									text: afterText,
@@ -1497,27 +1646,32 @@ class Text_editor_class {
 								});
 							}
 						}
+							
 						// For word split only, break out.
 						else if (layer.params.wrap === 'word') {
 							wrapCharacterOffsets.push(wrapAccumulativeSize);
 							break;
 						}
+							
 						// Otherwise, split the word
 						else {
 							if (s === 0 && c === 0) {
 								c++;
 								wrapCharacterOffsets.push(wrapAccumulativeSize);
 							}
+							
 							beforeSpans = currentWrapSpans.slice(0, s);
 							afterSpans = currentWrapSpans.slice(s + 1);
 							const beforeText = currentWrapSpans[s].text.substring(0, c);
 							const afterText = currentWrapSpans[s].text.substring(c);
+							
 							if (beforeText.length > 0) {
 								beforeSpans.push({
 									text: beforeText,
 									meta: currentWrapSpans[s].meta
 								});
 							}
+							
 							if (afterText.length > 0) {
 								afterSpans.unshift({
 									text: afterText,
@@ -1525,15 +1679,19 @@ class Text_editor_class {
 								});
 							}
 						}
-						let largestOffset = wrapCharacterOffsets[wrapCharacterOffsets.length-1];
+						
+						let largestOffset = wrapCharacterOffsets[wrapCharacterOffsets.length - 1];
+						
 						if (largestOffset > totalTextDirectionSize) {
 							totalTextDirectionSize = largestOffset;
 						}
+						
 						const newWrap = {
 							characterOffsets: wrapCharacterOffsets,
 							spans: beforeSpans
 						};
-						newWrap.characterOffsets = newWrap.characterOffsets.slice(0, this.get_wrap_text(newWrap).length + 1);
+						
+						newWrap.characterOffsets = newWrap.characterOffsets.slice(0, this.getWrapText(newWrap).length + 1);
 						lineWraps.push(newWrap);
 						currentWrapSpans = afterSpans;
 						wrapAccumulativeSize = 0;
@@ -1544,20 +1702,25 @@ class Text_editor_class {
 						wrapCharacterOffsets.push(wrapAccumulativeSize);
 					}
 				}
+				
 				if (s === -1) {
 					continue;
 				}
 			}
+			
 			if (currentWrapSpans.length > 0) {
-				let largestOffset = wrapCharacterOffsets[wrapCharacterOffsets.length-1];
+				let largestOffset = wrapCharacterOffsets[wrapCharacterOffsets.length - 1];
+				
 				if (largestOffset > totalTextDirectionSize) {
 					totalTextDirectionSize = largestOffset;
 				}
+				
 				lineWraps.push({
 					characterOffsets: wrapCharacterOffsets,
 					spans: currentWrapSpans
 				});
 			}
+			
 			lineRenderInfo.lines.push({
 				firstWrapIndex: 0,
 				wraps: lineWraps
@@ -1567,6 +1730,7 @@ class Text_editor_class {
 		// Adjust offsets for alignment along the text direction
 		if ((isHorizontalTextDirection && halign !== 'left') || (!isHorizontalTextDirection && valign !== 'top')) {
 			const maxTextDirectionSize = boundary === 'dynamic' ? totalTextDirectionSize : (isHorizontalTextDirection ? layer.width : layer.height);
+			
 			for (let line of lineRenderInfo.lines) {
 				for (let wrap of line.wraps) {
 					const isCentered = (isHorizontalTextDirection && halign == 'center') || (!isHorizontalTextDirection && valign === 'middle');
@@ -1587,13 +1751,16 @@ class Text_editor_class {
 		let wrapCounter = 0;
 		for (let line of lineRenderInfo.lines) {
 			line.firstWrapIndex = wrapCounter;
+			
 			for (let wrap of line.wraps) {
 				let ascenderSize = 0;
 				let descenderSize = 0;
+				
 				for (let span of wrap.spans) {
 					let fontMetrics;
 					const family = span.meta.family || metaDefaults.family;
 					const leading = span.meta.leading != null ? span.meta.leading : metaDefaults.leading;
+					
 					if (isHorizontalTextDirection) {
 						fontMetrics = this.get_span_font_metrics(span, !fontLoadMap.get(family));
 					} else {
@@ -1603,31 +1770,39 @@ class Text_editor_class {
 							' ' + (span.meta.size || metaDefaults.size) + 'px' +
 							' ' + family;
 					}
+					
 					let spanAscenderSize = isHorizontalTextDirection ? fontMetrics.baseline : ctx.measureText(character).width;
 					let spanDescenderSize = isHorizontalTextDirection ? Math.abs(fontMetrics.baseline - fontMetrics.height) : ctx.measureText(character).width;
+					
 					if (leading) {
 						spanAscenderSize += leading;
+						
 						if (spanAscenderSize < 0) {
 							spanDescenderSize += spanAscenderSize;
 							spanAscenderSize = 0;
+							
 							if (spanDescenderSize < 0) {
 								spanDescenderSize = 0;
 							}
 						}
 					}
+					
 					if (spanAscenderSize > ascenderSize) {
 						ascenderSize = spanAscenderSize;
 					}
+					
 					if (spanDescenderSize > descenderSize) {
 						descenderSize = spanDescenderSize;
 					}
 				}
+				
 				let lineSize = ascenderSize + descenderSize;
-				lineRenderInfo.wrapSizes.push({ size: lineSize, offset: wrapSizeAccumulator, baseline: ascenderSize });
+				lineRenderInfo.wrapSizes.push({size: lineSize, offset: wrapSizeAccumulator, baseline: ascenderSize});
 				wrapSizeAccumulator += lineSize;
 				wrapCounter++;
 			}
 		}
+		
 		totalWrapDirectionSize = wrapSizeAccumulator;
 
 		this.lastCalculatedLayerWidth = layer.width;
@@ -1638,16 +1813,15 @@ class Text_editor_class {
 	}
 
 	render(ctx, layer) {
-		if (config.need_render_changed_params || this.hasValueChanged || layer.width != this.lastCalculatedLayerWidth || layer.height != this.lastCalculatedLayerHeight || !this.textBoundaryWidth || !this.textBoundaryHeight) {
-			this.calculate_text_placement(ctx, layer);
+		if (config.needRenderChangeParams || this.hasValueChanged || layer.width != this.lastCalculatedLayerWidth || layer.height != this.lastCalculatedLayerHeight || !this.textBoundaryWidth || !this.textBoundaryHeight) {
+			this.calculateTextPlacement(ctx, layer);
 		}
 
 		if (!this.lineRenderInfo) return;
 
 		try {
-
 			let options = options || {};
-			let isSelectionEmpty = this.selection.is_empty();
+			let isSelectionEmpty = this.selection.isEmpty();
 
 			ctx.textAlign = 'left';
 			ctx.textBaseline = 'alphabetic';
@@ -1655,8 +1829,8 @@ class Text_editor_class {
 			const boundary = layer.params.boundary;
 			let drawOffsetTop = layer.y + 1;
 			let drawOffsetLeft = layer.x + 1;
-			const textDirection = layer.params.text_direction;
-			const wrapDirection = layer.params.wrap_direction;
+			const textDirection = layer.params.textDirection;
+			const wrapDirection = layer.params.wrapDirection;
 			const isHorizontalTextDirection = ['ltr', 'rtl'].includes(textDirection);
 			const isNegativeTextDirection = ['rtl', 'btt'].includes(textDirection);
 
@@ -1665,24 +1839,29 @@ class Text_editor_class {
 			let wrapIndex = 0;
 			const cursorLine = this.selection.isActiveSideEnd ? this.selection.end.line : this.selection.start.line;
 			const cursorCharacter = this.selection.isActiveSideEnd ? this.selection.end.character : this.selection.start.character;
-			if(layer.rotate){
+			
+			if (layer.rotate) {
 				const alpha = (layer.rotate * Math.PI) / 180;
 				ctx.save();
+				
 				// Move the canvas to the center before rotating
 				ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
 				ctx.rotate(alpha);
+				
 				// Move it back after it
 				ctx.translate(-layer.x - layer.width / 2, -layer.y - layer.height / 2);
-
 			}
+			
 			for (let line of this.lineRenderInfo.lines) {
 				let lineLetterCount = 0;
+				
 				for (let [localWrapIndex, wrap] of line.wraps.entries()) {
 					let cursorStartX = null;
 					let cursorStartY = null;
 					let cursorSize = null;
 					let characterIndex = 0;
 					const characterOffsets = wrap.characterOffsets;
+					
 					for (let [spanIndex, span] of wrap.spans.entries()) {
 						const kerning = span.meta.kerning != null ? span.meta.kerning : metaDefaults.kerning;
 						const bold = span.meta.bold != null ? span.meta.bold : metaDefaults.bold;
@@ -1692,16 +1871,17 @@ class Text_editor_class {
 						const family = span.meta.family || metaDefaults.family;
 
 						if (fontLoadMap.get(family) !== true) {
-							const variants = config.user_fonts[family] ? config.user_fonts[family].variants : undefined;
-							load_font_family({ family, variants }, () => {
+							const variants = config.userFonts[family] ? config.userFonts[family].variants : undefined;
+							loadFontFamily({family, variants}, () => {
 								this.hasValueChanged = true;
-								this.Base_layers.render();
+								this.BaseLayers.render();
 							});
 						}
 
 						let fontMetrics;
+						
 						if (underline || strikethrough) {
-							fontMetrics = this.get_span_font_metrics(span, !fontLoadMap.get(family));
+							fontMetrics = this.getSpanFontMetrics(span, !fontLoadMap.get(family));
 						}
 
 						// Set styles for drawing
@@ -1710,24 +1890,27 @@ class Text_editor_class {
 							' ' + (bold ? 'bold' : '') +
 							' ' + Math.round(span.meta.size || metaDefaults.size) + 'px' +
 							' ' + family;
-						const fill_color = span.meta.fill_color || metaDefaults.fill_color;
+						const fillColor = span.meta.fillColor || metaDefaults.fillColor;
 						let fillStyle;
-						if (fill_color.startsWith('#')) {
-							fillStyle = fill_color;
+						
+						if (fillColor.startsWith('#')) {
+							fillStyle = fillColor;
 						}
-						const stroke_size = ((span.meta.stroke_size != null) ? span.meta.stroke_size : metaDefaults.stroke_size);
+						
+						const strokeSize = ((span.meta.strokeSize != null) ? span.meta.strokeSize : metaDefaults.strokeSize);
 						let strokeStyle;
-						if (stroke_size) {
-							const stroke_color = span.meta.stroke_color || metaDefaults.stroke_color;
-							if (stroke_color.startsWith('#')) {
-								strokeStyle = stroke_color;
+						
+						if (strokeSize) {
+							const strokeColor = span.meta.strokeColor || metaDefaults.strokeColor;
+							
+							if (strokeColor.startsWith('#')) {
+								strokeStyle = strokeColor;
 							}
-							ctx.lineWidth = stroke_size;
+							
+							ctx.lineWidth = strokeSize;
 						} else {
 							ctx.lineWidth = 0;
 						}
-
-						
 						
 						// Loop through each letter in each span and draw it
 						for (let c = 0; c < span.text.length; c++) {
@@ -1740,6 +1923,7 @@ class Text_editor_class {
 							const letterDrawX = isHorizontalTextDirection ? textDirectionOffset + kerning : wrapDirectionOffset;
 							const letterDrawY = isHorizontalTextDirection ? wrapDirectionOffset : textDirectionOffset + kerning;
 							let isLetterSelected = false;
+							
 							if (this.selection.isVisible) {
 								if (!isSelectionEmpty) {
 									isLetterSelected = (
@@ -1759,19 +1943,20 @@ class Text_editor_class {
 										)
 									);
 								}
+								
 								if (cursorLine === lineIndex) {
 									if (cursorCharacter === lineLetterCount) {
 										cursorStartX = (isHorizontalTextDirection ? textDirectionOffset : lineStart) - 0.5;
 										cursorStartY = (isHorizontalTextDirection ? lineStart : textDirectionOffset) - 0.5;
 										cursorSize = isHorizontalTextDirection ? letterHeight : letterWidth;
-									}
-									else if (cursorCharacter === lineLetterCount + 1 && localWrapIndex === line.wraps.length - 1 && spanIndex === wrap.spans.length - 1 && c === span.text.length - 1) {
+									} else if (cursorCharacter === lineLetterCount + 1 && localWrapIndex === line.wraps.length - 1 && spanIndex === wrap.spans.length - 1 && c === span.text.length - 1) {
 										cursorStartX = (isHorizontalTextDirection ? textDirectionOffset + letterWidth : lineStart) - 0.5;
 										cursorStartY = (isHorizontalTextDirection ? lineStart : textDirectionOffset + letterHeight) - 0.5;
 										cursorSize = isHorizontalTextDirection ? letterHeight : letterWidth;
 									}
 								}
 							}
+							
 							if (isLetterSelected && this.editingCtx === ctx) {
 								const letterStartX = isHorizontalTextDirection ? textDirectionOffset : lineStart;
 								const letterStartY = isHorizontalTextDirection ? lineStart : textDirectionOffset;
@@ -1782,30 +1967,33 @@ class Text_editor_class {
 								ctx.strokeStyle = this.selectionBackgroundColor;
 								ctx.lineWidth = 0.75;
 								ctx.strokeRect(letterStartX, letterStartY, letterSizeX, letterSizeY);
-								ctx.lineWidth = stroke_size;
+								ctx.lineWidth = strokeSize;
 							}
+							
 							ctx.fillStyle = fillStyle;
 							ctx.strokeStyle = strokeStyle;
 							ctx.fillText(letter, letterDrawX, letterDrawY);
-							if (stroke_size) {
-								ctx.lineWidth = stroke_size;
+							
+							if (strokeSize) {
+								ctx.lineWidth = strokeSize;
 								ctx.strokeText(letter, letterDrawX, letterDrawY);
 							}
+							
 							if (strikethrough) {
 								ctx.fillStyle = fillStyle;
 								ctx.lineWidth = Math.max(1, fontMetrics.height / 20);
 								ctx.fillRect(letterDrawX - 0.25 - kerning, letterDrawY - (fontMetrics.height * .28), letterWidth + 0.5, ctx.lineWidth);
 							}
+							
 							if (underline) {
 								ctx.fillStyle = fillStyle;
 								ctx.lineWidth = Math.max(1, fontMetrics.height / 20);
 								ctx.fillRect(letterDrawX - 0.25 - kerning, letterDrawY + (ctx.lineWidth), letterWidth + 0.5, ctx.lineWidth);
 							}
+							
 							characterIndex++;
 							lineLetterCount++;
 						}
-
-						
 
 						if (span.text.length === 0) {
 							if (cursorLine === lineIndex && cursorCharacter === lineLetterCount) {
@@ -1821,38 +2009,45 @@ class Text_editor_class {
 					}
 
 					// Draw cursor
-					if (this.selection.isCursorVisible /*&& this.selection.isBlinkVisible*/ && cursorStartX && this.editingCtx == ctx) {
-						ctx.lineCap = 'butt';
+					if (this.selection.isCursorVisible /* && this.selection.isBlinkVisible */ && cursorStartX && this.editingCtx == ctx) {
+						ctx.lineCap = 'Butt';
 						ctx.strokeStyle = '#55555577';
 						ctx.lineWidth = 3;
 						ctx.beginPath();
 						ctx.moveTo(cursorStartX, cursorStartY + 1);
 						ctx.lineTo(cursorStartX, cursorStartY + cursorSize - 1);
+						
 						if (cursorSize > 14) {
 							ctx.moveTo(cursorStartX - 3, cursorStartY + 2);
 							ctx.lineTo(cursorStartX + 3, cursorStartY + 2);
 							ctx.moveTo(cursorStartX - 3, cursorStartY + cursorSize - 2);
 							ctx.lineTo(cursorStartX + 3, cursorStartY + cursorSize - 2);
 						}
+						
 						ctx.stroke();
-						ctx.strokeStyle = '#ffffffff';
+						ctx.strokeStyle = '#FFFFFFFF';
 						ctx.lineWidth = 1;
 						ctx.beginPath();
 						ctx.moveTo(cursorStartX, cursorStartY + 2);
 						ctx.lineTo(cursorStartX, cursorStartY + cursorSize - 2);
+						
 						if (cursorSize > 14) {
 							ctx.moveTo(cursorStartX - 2, cursorStartY + 2);
 							ctx.lineTo(cursorStartX + 2, cursorStartY + 2);
 							ctx.moveTo(cursorStartX - 2, cursorStartY + cursorSize - 2);
 							ctx.lineTo(cursorStartX + 2, cursorStartY + cursorSize - 2);
 						}
+						
 						ctx.stroke();
 					}
+					
 					wrapIndex++;
 				}
+				
 				lineIndex++;
 			}
-			if(layer.rotate){
+			
+			if (layer.rotate) {
 				ctx.restore();
 			}
 		} catch (error) {
@@ -1863,10 +2058,10 @@ class Text_editor_class {
 	}
 }
 
-class Google_fonts_search_class {
+class GoogleFontsSearchClass {
 	constructor() {
-		this.POP = new Dialog_class();
-		this.GUI_tools = new GUI_tools_class();
+		this.POP = new DialogClass();
+		this.GUITools = new GUIToolsClass();
 		this.popup = null;
 		this.fontsPerPage = 8;
 		this.dialogContentNode = null;
@@ -1877,16 +2072,18 @@ class Google_fonts_search_class {
 		this.searchTimeoutHandle = null;
 	}
 
-	render_font_list(page) {
+	renderFontList(page) {
 		page = page || 1;
 		const pageCount = Math.ceil(this.fontListFiltered.length / 8);
 		const startIndex = (page - 1) * this.fontsPerPage;
 		let html = '<div class="selection_card_list">';
+		
 		for (let i = startIndex; i < startIndex + this.fontsPerPage; i++) {
 			const font = this.fontListFiltered[i];
 			if (!font) break;
 			const isSelected = !!this.selectedFonts[font.family];
-			load_font_family({ family: font.family, variants: font.variants });
+			loadFontFamily({family: font.family, variants: font.variants});
+			
 			html += `
 				<div class="selection_card">
 					<input type="checkbox" id="google_font_selection_${font.family}" value="${font.family}" ${isSelected ? 'checked="checked"' : ''}>
@@ -1901,6 +2098,7 @@ class Google_fonts_search_class {
 				</div>
 			`;
 		}
+		
 		html += `
 				</div>
 				<div class="pagination">
@@ -1914,12 +2112,13 @@ class Google_fonts_search_class {
 				</div>
 			</div>
 		`;
+		
 		this.fontListNode.innerHTML = html;
 
 		// Attempt to remove vertical scroll by decreasing page size.
 		if (this.fontsPerPage > 3 && this.dialogContentNode.scrollHeight > this.dialogContentNode.clientHeight) {
 			this.fontsPerPage--;
-			this.render_font_list(page);
+			this.renderFontList(page);
 			return;
 		}
 
@@ -1929,25 +2128,25 @@ class Google_fonts_search_class {
 				if (checkbox.checked) {
 					this.selectedFonts[checkbox.value] = this.fontListFiltered
 						.slice(startIndex, startIndex + this.fontsPerPage)
-						.filter((font) => { return font.family === checkbox.value; })[0];
+						.filter((font) => {return font.family === checkbox.value;})[0];
 				} else {
 					delete this.selectedFonts[checkbox.value];
 				}
 			});
 		});
-
+		
 		// Handle pagination
 		this.fontListNode.querySelector('.pagination').addEventListener('click', (e) => {
 			const page = parseInt(e.target.getAttribute('data-page'), 10);
-			this.render_font_list(page);
+			this.renderFontList(page);
 		});
 	}
 
 	show() {
 		this.POP.show({
-			title: 'Search for Font',
+			title: 'Search For Font',
 			params: [
-				{ name: "query", title: "Search:", value: '', prevent_submission: true }
+				{name: "query", title: "Search:", value: '', prevent_submission: true}
 			],
 			on_load: (params, popup) => {
 				this.popup = popup;
@@ -1957,31 +2156,37 @@ class Google_fonts_search_class {
 				this.fontListNode = node;				
 
 				const queryInput = popup.el.querySelector('#pop_data_query');
+				
 				queryInput.addEventListener('input', (e) => {
 					const query = (e.target.value || '').toLowerCase();
 					if (!query) {
 						this.fontListFiltered = this.fontList;
-						this.render_font_list();
+						this.renderFontList();
 					} else {
-					clearTimeout(this.searchTimeoutHandle);
+						clearTimeout(this.searchTimeoutHandle);
+						
 						this.searchTimeoutHandle = setTimeout(() => {
 							this.fontListFiltered = [];
+							
 							for (let i = 0; i < this.fontList.length; i++) {
 								const fontFamily = this.fontList[i].family.toLowerCase();
+								
 								if (fontFamily.includes(query)) {
 									this.fontListFiltered.push(this.fontList[i]);
 								}
 							}
-							this.render_font_list();
+							
+							this.renderFontList();
 						}, 350);
 					}
 				});
-
-				const apiKey = config.google_webfonts_key;
+				
+				const apiKey = config.googleWebfontsKey;
+				
 				$.getJSON(`https://www.googleapis.com/webfonts/v1/webfonts?key=${apiKey}&sort=popularity`, (data) => {
 					this.fontList = data.items;
 					this.fontListFiltered = data.items;
-					this.render_font_list();
+					this.renderFontList();
 				}).fail(function () {
 					alertify.error('Error loading the list of fonts from Google.');
 				});
@@ -1991,14 +2196,18 @@ class Google_fonts_search_class {
 				this.POP = null;
 				if (Object.keys(this.selectedFonts).length > 0) {
 					let firstFont = null;
+					
 					for (let font in this.selectedFonts) {
 						if (!firstFont) {
 							firstFont = font;
 						}
-						config.user_fonts[font] = this.selectedFonts[font];
+						
+						config.userFonts[font] = this.selectedFonts[font];
 					}
-					app.GUI.GUI_tools.action_data().attributes.font.value = firstFont;
-					app.GUI.GUI_tools.show_action_attributes();
+					
+					app.GUI.GUITools.actionData().attributes.font.value = firstFont;
+					app.GUI.GUITools.showActionAttributes();
+					
 					try {
 						const changeEvent = new Event('change');
 						document.querySelector('#action_attributes select#font').dispatchEvent(changeEvent);
@@ -2011,14 +2220,12 @@ class Google_fonts_search_class {
 	}
 }
 
-
-class Text_class extends Base_tools_class {
-
+class TextClass extends BaseToolsClass {
 	constructor(ctx) {
 		super();
-		this.Base_layers = new Base_layers_class();
-		this.GUI_tools = new GUI_tools_class();
-		this.Helper = new Helper_class();
+		this.BaseLayers = new BaseLayersClass();
+		this.GUITools = new GUIToolsClass();
+		this.Helper = new HelperClass();
 		this.ctx = ctx;
 		this.name = 'text';
 		this.layer = {};
@@ -2030,7 +2237,8 @@ class Text_class extends Base_tools_class {
 		this.mousedownX = 0;
 		this.mousedownY = 0;
 		this.mousedownBounds = {};
-		this.is_fonts_loaded = false;
+		this.isFontsLoaded = false;
+		
 		if (ctx) {
 			this.selection = {
 				x: null,
@@ -2038,7 +2246,8 @@ class Text_class extends Base_tools_class {
 				width: null,
 				height: null,
 			};
-			var sel_config = {
+			
+			var selConfig = {
 				enable_background: false,
 				enable_borders: true,
 				enable_controls: true,
@@ -2048,7 +2257,8 @@ class Text_class extends Base_tools_class {
 					return this.selection;
 				},
 			};
-			this.Base_selection = new Base_selection_class(ctx, sel_config, this.name);
+			
+			this.BaseSelection = new BaseSelectionClass(ctx, selConfig, this.name);
 
 			// Need a textarea in order to listen for keyboard inputs in an accessible, multi-platform independent way
 			this.textarea = document.createElement('textarea');
@@ -2062,7 +2272,8 @@ class Text_class extends Base_tools_class {
 
 			this.textarea.addEventListener('focus', () => {
 				this.focused = true;
-				let editor = this.get_editor(this.layer);
+				let editor = this.getEditor(this.layer);
+				
 				if (editor) {
 					this.focusedValue = JSON.stringify(editor.document.lines);
 				}
@@ -2071,102 +2282,108 @@ class Text_class extends Base_tools_class {
 			this.textarea.addEventListener('blur', () => {
 				this.focused = false;
 				let editor = this.get_editor(this.layer);
+				
 				if (editor) {
 					let value = JSON.stringify(editor.document.lines);
+					
 					if (this.focusedValue !== value) {
 						this.layer.data = JSON.parse(this.focusedValue);
-						app.State.do_action(
-							new app.Actions.Update_layer_action(this.layer.id, { data: JSON.parse(value) })
+						
+						app.State.doAction(
+							new app.Actions.UpdateLayerAction(this.layer.id, {data: JSON.parse(value)})
 						);
 					}
 				}
+				
 				this.focusedValue = null;
-				this.Base_layers.render();
+				this.BaseLayers.render();
 			}, true);
 
 			let isComposing = false;
 			let beforeImeText = "";
+			
 			this.textarea.addEventListener('compositionstart', () => {
-				beforeImeText = "";
+					beforeImeText = "";
 					isComposing = true;
+				
 					if (config.layer) {
 						const editor = this.get_editor(config.layer);
-						beforeImeText = editor.get_complete_text();
+						beforeImeText = editor.getCompleteText();
 					}
 			});
 
 			this.textarea.addEventListener('compositionend', (e) => {
-				const editor = this.get_editor(config.layer);
-				editor.set_IME_position(e.target.value);
+				const editor = this.getEditor(config.layer);
+				editor.setIMEPosition(e.target.value);
 				beforeImeText = "";
 				isComposing = false;
 				e.target.value = '';
 			});
 
 			this.textarea.addEventListener('input', (e) => {
-				if(isComposing){
-					const editor = this.get_editor(config.layer);
-					editor.replace_entire_IME_text(beforeImeText, e.target.value);
-					this.Base_layers.render();
-					this.extend_fixed_bounds(config.layer, editor);
-				}
-				else if (config.layer) {
-					const editor = this.get_editor(config.layer);
-					editor.insert_text_at_current_position(e.target.value);
+				if (isComposing) {
+					const editor = this.getEditor(config.layer);
+					editor.replaceEntireIMEText(beforeImeText, e.target.value);
+					this.BaseLayers.render();
+					this.extendFixedBounds(config.layer, editor);
+				} else if (config.layer) {
+					const editor = this.getEditor(config.layer);
+					editor.insertTextAtCurrentPosition(e.target.value);
 					e.target.value = '';
-					this.Base_layers.render();
-					this.extend_fixed_bounds(config.layer, editor);
+					this.BaseLayers.render();
+					this.extendFixedBounds(config.layer, editor);
 				}
 			}, true);
 
 			this.textarea.addEventListener('keydown', (e) => {
 				if (config.layer) {
 					let handled = true;
-					const editor = this.get_editor(config.layer);
+					const editor = this.getEditor(config.layer);
+					
 					switch (e.key) {
 						case 'Backspace':
-							editor.delete_character_at_current_position(false);
+							editor.deleteCharacterAtCurrentPosition(false);
 							break;
 						case 'Delete':
-							editor.delete_character_at_current_position(true);
+							editor.deleteCharacterAtCurrentPosition(true);
 							break;
 						case 'Home':
-							editor.selection.move_line_start(e.shiftKey);
+							editor.selection.moveLineStart(e.shiftKey);
 							break;
 						case 'End':
-							editor.selection.move_line_end(e.shiftKey);
+							editor.selection.moveLineEnd(e.shiftKey);
 							break;
 						case 'Left': case 'ArrowLeft':
-							if (!e.shiftKey && !editor.selection.is_empty()) {
+							if (!e.shiftKey && !editor.selection.isEmpty()) {
 								editor.selection.isActiveSideEnd = false;
-								editor.selection.move_character_previous(0, false);
+								editor.selection.moveCharacterPrevious(0, false);
 							} else if (e.ctrlKey) {
-								editor.selection.move_word_previous(e.shiftKey);
+								editor.selection.moveWordPrevious(e.shiftKey);
 							} else {
-								editor.selection.move_character_previous(1, e.shiftKey);
+								editor.selection.moveCharacterPrevious(1, e.shiftKey);
 							}
 							break;
 						case 'Right': case 'ArrowRight':
 							if (!e.shiftKey && !editor.selection.is_empty()) {
 								editor.selection.isActiveSideEnd = true;
-								editor.selection.move_character_next(0, false);
+								editor.selection.moveCharacterNext(0, false);
 							} else if (e.ctrlKey) {
-								editor.selection.move_word_next(e.shiftKey);
+								editor.selection.moveWordNext(e.shiftKey);
 							} else {
-								editor.selection.move_character_next(1, e.shiftKey);
+								editor.selection.moveCharacterNext(1, e.shiftKey);
 							}
 							break;
 						case 'Up': case 'ArrowUp':
-							editor.selection.move_line_previous(1, e.shiftKey);
+							editor.selection.moveLinePrevious(1, e.shiftKey);
 							break;
 						case 'Down': case 'ArrowDown':
-							editor.selection.move_line_next(1, e.shiftKey);
+							editor.selection.moveLineNext(1, e.shiftKey);
 							break;
 						case 'a':
 							if (e.ctrlKey) {
-								editor.selection.set_position(0, 0);
+								editor.selection.setPosition(0, 0);
 								const lastLine = editor.document.lines.length - 1;
-								editor.selection.set_position(lastLine, editor.document.get_line_character_count(lastLine), true);
+								editor.selection.setPosition(lastLine, editor.document.getLineCharacterCount(lastLine), true);
 								break;
 							}
 						case 'b':
@@ -2178,7 +2395,7 @@ class Text_class extends Base_tools_class {
 						case 'c':
 							if (e.ctrlKey) {
 								e.preventDefault();
-								this.textarea.value = editor.selection.get_text();
+								this.textarea.value = editor.selection.getText();
 								this.textarea.select();
 								this.textarea.setSelectionRange(0, 99999);
 								document.execCommand('copy');
@@ -2200,22 +2417,24 @@ class Text_class extends Base_tools_class {
 						case 'x':
 							if (e.ctrlKey) {
 								e.preventDefault();
-								this.textarea.value = editor.selection.get_text();
+								this.textarea.value = editor.selection.getText();
 								this.textarea.select();
 								this.textarea.setSelectionRange(0, 99999);
 								document.execCommand('copy');
 								this.textarea.value = '';
-								editor.delete_selection();
+								editor.deleteSelection();
 								break;
 							}
 						default:
 							handled = false;
 					}
+					
 					if (handled) {
-						this.update_tool_attributes(config.layer, editor);
-						this.Base_layers.render();
+						this.updateToolAttributes(config.layer, editor);
+						this.BaseLayers.render();
 					}
-					this.extend_fixed_bounds(config.layer, editor);
+					
+					this.extendFixedBounds(config.layer, editor);
 					return !handled;
 				}
 			}, true);
@@ -2225,18 +2444,21 @@ class Text_class extends Base_tools_class {
 	dragStart(event) {
 		if (config.TOOL.name != this.name)
 			return;
+		
 		this.mousedown(event);
 	}
 
 	dragMove(event) {
 		if (config.TOOL.name != this.name)
 			return;
+		
 		this.mousemove(event);
 	}
 
 	dragEnd(event) {
 		if (config.TOOL.name != this.name)
 			return;
+		
 		this.mouseup(event);
 	}
 
@@ -2245,12 +2467,15 @@ class Text_class extends Base_tools_class {
 		document.addEventListener('mousedown', (event) => {
 			this.dragStart(event);
 		});
+		
 		document.addEventListener('mousemove', (event) => {
 			this.dragMove(event);
 		});
+		
 		document.addEventListener('mouseup', (event) => {
 			this.dragEnd(event);
 		});
+		
 		document.addEventListener('dblclick', (event) => {
 			this.doubleClick(event);
 		});
@@ -2259,17 +2484,20 @@ class Text_class extends Base_tools_class {
 		document.addEventListener('touchstart', (event) => {
 			this.dragStart(event);
 		});
+		
 		document.addEventListener('touchmove', (event) => {
 			this.dragMove(event);
 		});
+		
 		document.addEventListener('touchend', (event) => {
 			this.dragEnd(event);
 		});
 	}
 
 	mousedown(e) {
-		var mouse = this.get_mouse_info(e);
-		if (mouse.click_valid == false)
+		var mouse = this.getMouseInfo(e);
+		
+		if (mouse.clickValid == false)
 			return;
 
 		this.creating = false;
@@ -2278,6 +2506,7 @@ class Text_class extends Base_tools_class {
 
 		this.mousedownX = mouse.x;
 		this.mousedownY = mouse.y;
+		
 		this.mousedownBounds = {
 			x: config.layer.x,
 			y: config.layer.y,
@@ -2286,27 +2515,29 @@ class Text_class extends Base_tools_class {
 			boundary: config.layer.params.boundary
 		};
 
-		if (this.Base_selection.mouse_lock !== null) {
+		if (this.BaseSelection.mouseLock !== null) {
 			this.resizing = true;
 			return;
 		}
 
-		const existingLayer = this.get_text_layer_at_mouse(e);
+		const existingLayer = this.getTextLayerAtMouse(e);
+		
 		if (existingLayer) {
 			this.selecting = true;
 			this.layer = existingLayer;
-			const editor = this.get_editor(this.layer);
-			editor.trigger_cursor_start(this.layer, -1 + mouse.x - this.layer.x, mouse.y - this.layer.y);
-			app.State.do_action(
-				new app.Actions.Bundle_action('select_text_layer', 'Select Text Layer', [
-					new app.Actions.Select_layer_action(existingLayer.id),
-					new app.Actions.Set_selection_action(this.layer.x, this.layer.y, this.layer.width, this.layer.height)
+			const editor = this.getEditor(this.layer);
+			editor.triggerCursorStart(this.layer, -1 + mouse.x - this.layer.x, mouse.y - this.layer.y);
+			
+			app.State.doAction(
+				new app.Actions.BundleAction('select_text_layer', 'Select Text Layer', [
+					new app.Actions.SelectLayerAction(existingLayer.id),
+					new app.Actions.SetSelectionAction(this.layer.x, this.layer.y, this.layer.width, this.layer.height)
 				])
 			);
-		}
-		else {
+		} else {
 			// Create a new text layer
 			this.creating = true;
+			
 			const layer = {
 				type: this.name,
 				params: {
@@ -2324,21 +2555,25 @@ class Text_class extends Base_tools_class {
 				rotate: 0,
 				is_vector: true,
 			};
-			app.State.do_action(
-				new app.Actions.Bundle_action('new_text_layer', 'New Text Layer', [
-					new app.Actions.Insert_layer_action(layer),
-					new app.Actions.Set_selection_action(mouse.x, mouse.y, 0, 0)
+			
+			app.State.doAction(
+				new app.Actions.BundleAction('new_text_layer', 'New Text Layer', [
+					new app.Actions.InsertLayerAction(layer),
+					new app.Actions.SetSelectionAction(mouse.x, mouse.y, 0, 0)
 				])
 			);
+			
 			this.layer = config.layer;
 		}
 	}
 
 	mousemove(e) {
-		var mouse = this.get_mouse_info(e);
-		if (mouse.is_drag == false)
+		var mouse = this.getMouseInfo(e);
+		
+		if (mouse.isDrag == false)
 			return;
-		if (mouse.click_valid == false) {
+		
+		if (mouse.clickValid == false) {
 			return;
 		}
 
@@ -2347,107 +2582,112 @@ class Text_class extends Base_tools_class {
 			config.layer.y = this.selection.y;
 			config.layer.width = this.selection.width;
 			config.layer.height = this.selection.height;
+			
 			if (config.layer.params.boundary === 'dynamic') {
 				config.layer.params.boundary = 'box';
 			}
-		}
-		else if (this.creating) {
+		} else if (this.creating) {
 			const width = Math.abs(mouse.x - this.mousedownX);
 			const height = Math.abs(mouse.y - this.mousedownY);
 
-			//more data
+			// More data
 			if (config.layer.params.boundary === 'dynamic') {
 				config.layer.params.boundary = 'box';
 			}
+			
 			config.layer.x = Math.min(mouse.x, this.mousedownX);
 			config.layer.y = Math.min(mouse.y, this.mousedownY);
 			config.layer.width = width;
 			config.layer.height = height;
 		} else {
-			this.get_editor(this.layer).trigger_cursor_move(this.layer, -1 + mouse.x - this.layer.x, mouse.y - this.layer.y);
+			this.getEditor(this.layer).triggerCursorMove(this.layer, -1 + mouse.x - this.layer.x, mouse.y - this.layer.y);
 		}
-		this.Base_layers.render();
+		
+		this.BaseLayers.render();
 	}
 
 	mouseup(e) {
-		var mouse = this.get_mouse_info(e);
-		if (mouse.click_valid == false) {
+		var mouse = this.getMouseInfo(e);
+		
+		if (mouse.clickValid == false) {
 			return;
 		}
-		const editor = this.get_editor(this.layer);
+		
+		const editor = this.getEditor(this.layer);
 
 		if (this.resizing) {
 			config.layer.x = this.mousedownBounds.x;
 			config.layer.y = this.mousedownBounds.y;
 			config.layer.width = this.mousedownBounds.width;
 			config.layer.height = this.mousedownBounds.height;
-			const new_params = JSON.parse(JSON.stringify(config.layer.params));
-			new_params.boundary = config.layer.params.boundary;
+			const newParams = JSON.parse(JSON.stringify(config.layer.params));
+			newParams.boundary = config.layer.params.boundary;
 			config.layer.params.boundary = this.mousedownBounds.boundary;
-			app.State.do_action(
-				new app.Actions.Bundle_action('resize_text_layer', 'Resize Text Layer', [
-					new app.Actions.Update_layer_action(config.layer.id, {
+			
+			app.State.doAction(
+				new app.Actions.BundleAction('resize_text_layer', 'Resize Text Layer', [
+					new app.Actions.UpdateLayerAction(config.layer.id, {
 						x: this.selection.x,
 						y: this.selection.y,
 						width: this.selection.width,
 						height: this.selection.height,
-						params: new_params
+						params: newParams
 					}),
-					new app.Actions.Set_selection_action(this.selection.x, this.selection.y, this.selection.width, this.selection.height)
+					new app.Actions.SetSelectionAction(this.selection.x, this.selection.y, this.selection.width, this.selection.height)
 				])
 			);
-		}
-		else if (this.creating) {
+		} else if (this.creating) {
 			let width = Math.abs(mouse.x - this.mousedownX);
 			let height = Math.abs(mouse.y - this.mousedownY);
 
 			if (width == 0 && height == 0) {
-				// Same coordinates - let render figure out dynamic width
+				// Same coordinates - Let render figure out dynamic width
 				width = 1;
 				height = 1;
 			}
-			app.State.do_action(
-				new app.Actions.Bundle_action('resize_text_layer', 'Resize Text Layer', [
-					new app.Actions.Update_layer_action(config.layer.id, {
+			
+			app.State.doAction(
+				new app.Actions.BundleAction('resize_text_layer', 'Resize Text Layer', [
+					new app.Actions.UpdateLayerAction(config.layer.id, {
 						x: Math.min(mouse.x, this.mousedownX),
 						y: Math.min(mouse.y, this.mousedownY),
 						width,
 						height
 					})
 				]),
-				{ merge_with_history: 'new_text_layer' }
+				{merge_with_history: 'new_text_layer'}
 			);
 			this.textarea.focus();
-		}
-		else if (this.selecting) {
-			editor.trigger_cursor_end();
+		} else if (this.selecting) {
+			editor.triggerCursorEnd();
 			this.textarea.focus();
 			
-			if (editor.selection.is_empty() && editor.document.queuedMetaChanges) {
+			if (editor.selection.isEmpty() && editor.document.queuedMetaChanges) {
 				let meta = {};
-				const existingMeta = editor.document.get_meta_range(editor.selection.start.line, editor.selection.start.character, editor.selection.end.line, editor.selection.end.character);
+				const existingMeta = editor.document.getMetaRange(editor.selection.start.line, editor.selection.start.character, editor.selection.end.line, editor.selection.end.character);
+				
 				for (let metaKey in existingMeta) {
 					meta[metaKey] = editor.document.queuedMetaChanges[metaKey] != null ? editor.document.queuedMetaChanges[metaKey] : existingMeta[metaKey][0];
 				}
 			} else {
 				editor.document.queuedMetaChanges = null;
-				this.update_tool_attributes(this.layer, editor);
+				this.updateToolAttributes(this.layer, editor);
 			}
 		}
 
 		// Resize layer based on text boundaries.
-		this.extend_fixed_bounds(this.layer, editor);
+		this.extendFixedBounds(this.layer, editor);
 		this.Base_layers.render();
 
 		// Center layer on mouse if not click & drag
 		if (this.creating && config.layer.params.boundary === 'dynamic') {
 			requestAnimationFrame(() => {
-				app.State.do_action(
-					new app.Actions.Update_layer_action(config.layer.id, {
+				app.State.doAction(
+					new app.Actions.UpdateLayerAction(config.layer.id, {
 						x: config.layer.x - config.layer.width / 2,
 						y: config.layer.y - config.layer.height / 2
 					}),
-					{ merge_with_history: 'new_text_layer' }
+					{merge_with_history: 'new_text_layer'}
 				);
 			});
 		}
@@ -2457,26 +2697,26 @@ class Text_class extends Base_tools_class {
 		this.creating = false;
 	}
 
-
 	doubleClick(event) {
 		if (document.activeElement === this.textarea) {
-			const editor = this.get_editor(this.layer);
-			if (editor.selection.is_empty()) {
-				const position = editor.selection.get_position();
-				const wordStart = editor.document.get_word_start_position(position.line, position.character, true);
-				const wordEnd = editor.document.get_word_end_position(position.line, position.character, true);
-				editor.selection.set_position(wordStart.line, wordStart.character);
-				editor.selection.set_position(wordEnd.line, wordEnd.character, true);
-				this.update_tool_attributes(this.layer, editor);
+			const editor = this.getEditor(this.layer);
+			if (editor.selection.isEmpty()) {
+				const position = editor.selection.getPosition();
+				const wordStart = editor.document.getWordStartPosition(position.line, position.character, true);
+				const wordEnd = editor.document.getWordEndPosition(position.line, position.character, true);
+				editor.selection.setPosition(wordStart.line, wordStart.character);
+				editor.selection.setPosition(wordEnd.line, wordEnd.character, true);
+				this.updateToolAttributes(this.layer, editor);
 			}
 		}
 	}
 
-	on_params_update(param) {
+	omParamsUpdate(param) {
 		const editor = this.get_editor(config.layer);
 		const value = param.value;
 		const meta = {};
 		let returnValue = undefined;
+		
 		switch (param.key) {
 			case 'font':
 				if (value.includes('...')) {
@@ -2485,7 +2725,7 @@ class Text_class extends Base_tools_class {
 							font: ''
 						}
 					};
-					new Google_fonts_search_class().show();
+					new GoogleFontsSearchClass().show();
 				}
 				else if (value) meta.family = value;
 				break;
@@ -2505,13 +2745,13 @@ class Text_class extends Base_tools_class {
 				meta.strikethrough = value;
 				break;
 			case 'fill':
-				if (value) meta.fill_color = value;
+				if (value) meta.fillColor = value;
 				break;
 			case 'stroke':
-				if (value) meta.stroke_color = value;
+				if (value) meta.strokeColor = value;
 				break;
 			case 'stroke_size':
-				if (!isNaN(value)) meta.stroke_size = value;
+				if (!isNaN(value)) meta.strokeSize = value;
 				break;
 			case 'kerning':
 				if (!isNaN(value)) meta.kerning = value;
@@ -2520,10 +2760,12 @@ class Text_class extends Base_tools_class {
 				if (!isNaN(value)) meta.leading = value;
 				break;
 		}
-		if (editor.selection.is_empty()) {
+		
+		if (editor.selection.isEmpty()) {
 			if (!editor.document.queuedMetaChanges) {
 				editor.document.queuedMetaChanges = {};
 			}
+			
 			for (let metaKey in meta) {
 				editor.document.queuedMetaChanges[metaKey] = meta[metaKey];
 			}
@@ -2533,70 +2775,78 @@ class Text_class extends Base_tools_class {
 			editor.document.set_meta_range(editor.selection.start.line, editor.selection.start.character, editor.selection.end.line, editor.selection.end.character, meta);
 			editor.hasValueChanged = true;
 			this.layer.data = oldData;
-			app.State.do_action(
-				new app.Actions.Update_layer_action(this.layer.id, { data: JSON.parse(JSON.stringify(editor.document.lines)) })
+			
+			app.State.doAction(
+				new app.Actions.UpdateLayerAction(this.layer.id, {data: JSON.parse(JSON.stringify(editor.document.lines))})
 			);
-			this.Base_layers.render();
+			this.BaseLayers.render();
 		}
+		
 		return returnValue;
 	}
 
-	update_tool_attributes(layer, editor) {
+	updateToolAttributes(layer, editor) {
 		if (layer && layer.params) {
-			const meta = editor.document.get_meta_range(editor.selection.start.line, editor.selection.start.character, editor.selection.end.line, editor.selection.end.character);
-			const toolAttributes = this.GUI_tools.action_data().attributes;
+			const meta = editor.document.getMetaRange(editor.selection.start.line, editor.selection.start.character, editor.selection.end.line, editor.selection.end.character);
+			const toolAttributes = this.GUITools.actionData().attributes;
 			toolAttributes.font.value = meta.family.length === 1 ? meta.family[0] : '';
 			toolAttributes.size = meta.size.length === 1 ? meta.size[0] : parseFloat(null);
 			toolAttributes.bold.value = meta.bold.includes(false) ? false : true;
 			toolAttributes.italic.value = meta.italic.includes(false) ? false : true;
 			toolAttributes.underline.value = meta.underline.includes(false) ? false : true;
 			toolAttributes.strikethrough.value = meta.strikethrough.includes(false) ? false : true;
-			toolAttributes.fill = meta.fill_color.length === 1 ? meta.fill_color[0] : '#000000';
-			toolAttributes.stroke = meta.stroke_color.length === 1 ? meta.stroke_color[0] : '#000000';
-			toolAttributes.stroke_size.value = meta.stroke_size.length === 1 ? meta.stroke_size[0] : parseFloat(null);
+			toolAttributes.fill = meta.fillColor.length === 1 ? meta.fillColor[0] : '#000000';
+			toolAttributes.stroke = meta.strokeColor.length === 1 ? meta.strokeCOlor[0] : '#000000';
+			toolAttributes.strokeSize.value = meta.strokeSize.length === 1 ? meta.strokeSize[0] : parseFloat(null);
 			toolAttributes.kerning.value = meta.kerning.length === 1 ? meta.kerning[0] : parseFloat(null);
 			toolAttributes.leading.value = meta.leading.length === 1 ? meta.leading[0] : parseFloat(null);
-			this.GUI_tools.show_action_attributes();
+			
+			this.GUITools.showActionAttributes();
 		}
 	}
 
-	resize_to_dynamic_bounds(layer, editor) {
+	resizeToDynamicBounds(layer, editor) {
 		if (layer && layer.params && layer.params.boundary === 'dynamic') {
-			let new_width = Math.max(9, editor.textBoundaryWidth + 1);
-			let new_height = Math.max(9, editor.textBoundaryHeight + 1);
-			config.layer.width = new_width;
-			config.layer.height = new_height;
+			let newWidth = Math.max(9, editor.textBoundaryWidth + 1);
+			let newHeight = Math.max(9, editor.textBoundaryHeight + 1);
+			config.layer.width = newWidth;
+			config.layer.height = newHeight;
 		}
 	}
 
-	extend_fixed_bounds(layer, editor) {
+	extendFixedBounds(layer, editor) {
 		if (layer && layer.params && layer.params.boundary !== 'dynamic') {
 			const isHorizontalTextDirection = ['ltr', 'rtl'].includes(layer.params.textDirection);
-			let new_width = layer.width;
-			let new_height = layer.height;
+			let newWidth = layer.width;
+			let newHeight = layer.height;
+			
 			if (isHorizontalTextDirection) {
-				new_width = Math.max(editor.textBoundaryWidth + 1, new_width);
+				newWidth = Math.max(editor.textBoundaryWidth + 1, newWidth);
 			} else {
-				new_height = Math.max(editor.textBoundaryHeight + 1, new_height);
+				newHeight = Math.max(editor.textBoundaryHeight + 1, newHeight);
 			}
-			config.layer.width = new_width;
-			config.layer.height = new_height;
+			
+			config.layer.width = newWidth;
+			config.layer.height = newHeight;
 		}
 	}
 
 	render(ctx, layer) {
 		if (layer.width == 0 && layer.height == 0)
 			return;
+		
 		var params = layer.params;
 
 		const isActiveLayerAndTextTool = layer === config.layer && config.TOOL.name === 'text';
 		const editor = this.get_editor(layer);
-		editor.selection.set_visible(isActiveLayerAndTextTool);
-		editor.selection.set_cursor_visible(isActiveLayerAndTextTool && (this.selecting || this.focused));
+		editor.selection.setVisible(isActiveLayerAndTextTool);
+		editor.selection.setCursorVisible(isActiveLayerAndTextTool && (this.selecting || this.focused));
 		editor.render(ctx, layer);
+		
 		if (layer === config.layer) {
-			this.resize_to_dynamic_bounds(layer, editor);
+			this.resizeToDynamicBounds(layer, editor);
 		}
+		
 		if (!this.resizing && isActiveLayerAndTextTool) {
 			this.selection.x = layer.x;
 			this.selection.y = layer.y;
@@ -2611,17 +2861,21 @@ class Text_class extends Base_tools_class {
 		}
 	}
 
-	get_editor(layer) {
+	getEditor(layer) {
 		let editor = layerEditors.get(layer);
+		
 		if (!editor) {
-			editor = new Text_editor_class();
+			editor = new TextEditorClass();
 
 			// Convert legacy to new format
 			if (layer.params && layer.params.text) {
 				const params = layer.params;
+				
 				let lines = [];
+				
 				const textLines = layer.params.text.split('\n');
-				const family = params.family && params.family.value? params.family.value : params.family;
+				const family = params.family && params.family.value ? params.family.value : params.family;
+				
 				for (const textLine of textLines) {
 					lines.push([
 						{
@@ -2631,21 +2885,23 @@ class Text_class extends Base_tools_class {
 								size: params.size,
 								bold: params.bold,
 								italic: params.italic,
-								fill_color: params.stroke ? '#ffffff00' : layer.color,
-								stroke_color: params.stroke ? layer.color : '#ffffff00',
+								fill_color: params.stroke ? '#FFFFFF00' : layer.color,
+								stroke_color: params.stroke ? layer.color : '#FFFFFF00',
 								stroke_size: params.stroke ? params.stroke_size : 0,
 								leading: 0
 							}
 						}
 					]);
 				}
+				
 				params.boundary = 'box';
 				params.kerning = 'metrics';
 				params.halign = params.align ? (params.align.value ? params.align.value : params.align).toLowerCase() : 'left';
 				params.valign = 'top';
-				params.text_direction = 'ltr';
-				params.wrap_direction = 'ttb';
+				params.textDirection = 'ltr';
+				params.wrapDirection = 'ttb';
 				params.wrap = 'word';
+				
 				delete params.text;
 				delete params.family;
 				delete params.size;
@@ -2654,28 +2910,36 @@ class Text_class extends Base_tools_class {
 				delete params.stroke;
 				delete params.stroke_size;
 				delete params.align;
+				
 				layer.data = lines;
 				layer.x -= 1;
 
 				// Change leading offset so line height matches legacy line height calculation... need to load the font first to do this.
 				// This is an approximate calculation, but seems to be pretty close.
-				load_font_family({ family }, () => {
+				loadFontFamily({family}, () => {
 					const line = layer.data[0];
+					
 					if (!line) return;
+					
 					const span = line[0];
+					
 					if (!span) return;
-					const fontMetrics = editor.get_span_font_metrics(span, !fontLoadMap.get(span.meta.family || metaDefaults.family));
-					const topBounds = fontMetrics.calculate_letter_bounds('M', 'top');
+					
+					const fontMetrics = editor.getSpanFontMetrics(span, !fontLoadMap.get(span.meta.family || metaDefaults.family));
+					const topBounds = fontMetrics.calculateLetterBounds('M', 'top');
+					
 					span.meta.leading = (span.meta.size || metaDefaults.size) - fontMetrics.height;
 					layer.y += Math.abs(span.meta.leading) - (fontMetrics.baseline - topBounds.bottom);
+					
 					editor.hasValueChanged = true;
-					editor.Base_layers.render();
+					editor.BaseLayers.render();
 				});
 			}
 
 			// Create initial layer data if new layer
 			if (!layer.data) {
 				const params = this.getParams();
+				
 				layer.data = [[{
 					text: '',
 					meta: {
@@ -2685,46 +2949,52 @@ class Text_class extends Base_tools_class {
 						italic: params.italic.value !== metaDefaults.italic ? params.italic.value : undefined,
 						underline: params.underline.value !== metaDefaults.underline ? params.underline.value : undefined,
 						strikethrough: params.strikethrough.value !== metaDefaults.strikethrough ? params.strikethrough.value : undefined,
-						fill_color: params.fill !== metaDefaults.fill_color ? params.fill : undefined,
-						stroke_color: params.stroke !== metaDefaults.stroke_color ? params.stroke : undefined,
-						stroke_size: params.stroke_size !== metaDefaults.stroke_size && !isNaN(params.stroke_size) ? params.stroke_size : undefined,
+						fill_color: params.fill !== metaDefaults.fillColor ? params.fill : undefined,
+						stroke_color: params.stroke !== metaDefaults.strokeColor ? params.stroke : undefined,
+						stroke_size: params.strokeSize !== metaDefaults.strokeSize && !isNaN(params.strokeSize) ? params.strokeSize : undefined,
 						kerning: params.kerning !== metaDefaults.kerning && !isNaN(params.kerning) ? params.kerning : undefined,
 						leading: params.leading !== metaDefaults.leading && !isNaN(params.leading) ? params.leading : undefined
 					}
 				}]];
 			}
 
-			editor.set_lines(layer.data);
-			editor.Base_layers = this.Base_layers;
+			editor.setLines(layer.data);
+			editor.BaseLayers = this.BaseLayers;
 			editor.layer = layer;
 			layerEditors.set(layer, editor);
 		}
-		if (layer._needs_update_data) {
-			delete layer._needs_update_data;
+		
+		if (layer.needsUpdateData) {
+			delete layer.needsUpdateData;
 			editor.hasValueChanged = true;
-			editor.set_lines(JSON.parse(JSON.stringify(layer.data)));
+			editor.setLines(JSON.parse(JSON.stringify(layer.data)));
 		}
+		
 		return editor;
 	}
 
-	get_text_layer_at_mouse(e) {
-		const layers_sorted = this.Base_layers.get_sorted_layers();
+	getTextLayerAtMouse(e) {
+		const layersSorted = this.BaseLayers.getSortedLayers();
+		
 		if (config.layer.type === 'text') {
-			layers_sorted.unshift(config.layer);
+			layersSorted.unshift(config.layer);
 		}
-		const mouse = this.get_mouse_info(e);
+		
+		const mouse = this.getMouseInfo(e);
 		const clickableMargin = 5;
-		for (let layer of layers_sorted) {
+		
+		for (let layer of layersSorted) {
 			if (layer.type === 'text') {
-				// TODO - account for rotation
+				// TODO - Account for rotation
 				if (mouse.x >= layer.x - clickableMargin && mouse.x <= layer.x + layer.width + clickableMargin && mouse.y >= layer.y - clickableMargin && mouse.y <= layer.y + layer.height + clickableMargin) {
 					return layer;
 				}
 			}
 		}
+		
 		return null;
 	}
 
 }
 
-export default Text_class;
+export default TextClass;
