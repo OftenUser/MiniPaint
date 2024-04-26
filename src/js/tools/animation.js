@@ -1,40 +1,40 @@
 import app from './../app.js';
 import config from './../config.js';
-import Base_tools_class from './../core/base-tools.js';
-import Base_layers_class from './../core/base-layers.js';
-import GUI_tools_class from './../core/gui/gui-tools.js';
-import Base_gui_class from './../core/base-gui.js';
-import Base_selection_class from './../core/base-selection.js';
+import BaseToolsClass from './../core/base-tools.js';
+import BaseLayersClass from './../core/base-layers.js';
+import GUIToolsClass from './../core/gui/gui-tools.js';
+import BaseGUIClass from './../core/base-gui.js';
+import BaseSelectionClass from './../core/base-selection.js';
 import alertify from './../../../node_modules/alertifyjs/build/alertify.min.js';
 
-class Animation_class extends Base_tools_class {
+class AnimationClass extends BaseToolsClass {
 
 	constructor(ctx) {
 		super();
-		this.Base_layers = new Base_layers_class();
-		this.GUI_tools = new GUI_tools_class();
-		this.Base_gui = new Base_gui_class();
+		this.BaseLayers = new BaseLayersClass();
+		this.GUITools = new GUIToolsClass();
+		this.BaseGUI = new BaseGUIClass();
 		this.name = 'animation';
 		this.intervalID = null;
 		this.index = 0;
-		this.toggle_layer_visibility_action = new app.Actions.Toggle_layer_visibility_action();
+		this.toggleLayerVisibilityAction = new app.Actions.ToggleLayerVisibilityAction();
 
-		this.disable_selection(ctx);
+		this.disableSelection(ctx);
 	}
 
 	load() {
-		//nothing
+		// Nothing
 	}
 
 	render(ctx, layer) {
-		//nothing
+		// Nothing
 	}
 
 	/**
-	 * disable_selection
+	 * Disable selection
 	 */
-	disable_selection(ctx) {
-		var sel_config = {
+	disableSelection(ctx) {
+		var selConfig = {
 			enable_background: false,
 			enable_borders: false,
 			enable_controls: false,
@@ -44,18 +44,20 @@ class Animation_class extends Base_tools_class {
 				return null;
 			},
 		};
-		this.Base_selection = new Base_selection_class(ctx, sel_config, this.name);
+		this.BaseSelection = new BaseSelectionClass(ctx, selConfig, this.name);
 	}
 
-	on_params_update(data) {
-		if(data.key != "play")
+	onParamsUpdate(data) {
+		if (data.key != "play")
 			return;
 
 		var params = this.getParams();
+		
 		if (config.layers.length == 1) {
 			alertify.error('Can not animate 1 layer.');
 			return;
 		}
+		
 		this.stop();
 
 		if (params.play == true) {
@@ -63,31 +65,32 @@ class Animation_class extends Base_tools_class {
 		}
 	}
 
-	on_activate() {
+	onActivate() {
 		return [
-			new app.Actions.Stop_animation_action(false)
+			new app.Actions.StopAnimationAction(false)
 		];
 	}
 
-	on_leave() {
+	onLeave() {
 		return [
-			new app.Actions.Stop_animation_action(true)
+			new app.Actions.StopAnimationAction(true)
 		];
 	}
 
 	start(delay) {
 		var _this = this;
 		delay = parseInt(delay);
+		
 		if (delay < 0)
 			delay = 50;
 
-		this.intervalID = window.setInterval(function () {
+		this.intervalID = window.setInterval(function() {
 			_this.play(_this);
 		}, delay);
 	}
 
 	stop() {
-		new app.Actions.Stop_animation_action(true).do();
+		new app.Actions.StopAnimationAction(true).do();
 	}
 
 	play(_this) {
@@ -96,17 +99,16 @@ class Animation_class extends Base_tools_class {
 			config.layers[i].visible = false;
 		}
 
-		//show 1
+		// Show 1
 		if (config.layers[this.index] != undefined) {
-			this.toggle_layer_visibility_action.layer_id = config.layers[this.index].id;
-			this.toggle_layer_visibility_action.do();
+			this.toggleLayerVisibilityAction.layer_id = config.layers[this.index].id;
+			this.toggleLayerVisibilityAction.do();
 		}
 
-		//change index
+		// Change index
 		if (config.layers[this.index + 1] != undefined) {
 			this.index++;
-		}
-		else {
+		} else {
 			this.index = 0;
 		}
 	}
