@@ -23,7 +23,7 @@ class GradientClass extends BaseToolsClass {
 		var mouse = this.getMouseInfo(e);
 		var params = this.getParams();
 		
-		if (mouse.click_valid == false)
+		if (mouse.clickValid == false)
 			return;
 
 		var name = this.name;
