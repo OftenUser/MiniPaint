@@ -8,7 +8,7 @@ class TriangleClass extends BaseToolsClass {
 		super();
 		this.BaseLayers = new BaseLayersClass();
 		this.ctx = ctx;
-		this.name = 'triangle';
+		this.name = 'Triangle';
 		this.layer = {};
 		this.bestRatio = 2 / Math.sqrt(3);
 		this.snapLineInfo = {x: null, y: null};
