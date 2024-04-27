@@ -1,19 +1,18 @@
 import app from './../../app.js';
 import config from './../../config.js';
-import Base_tools_class from './../../core/base-tools.js';
-import Base_layers_class from './../../core/base-layers.js';
+import BaseToolsClass from './../../core/base-tools.js';
+import BaseLayersClass from './../../core/base-layers.js';
 
-class Hexagon_class extends Base_tools_class {
-
+class HexagonClass extends BaseToolsClass {
 	constructor(ctx) {
 		super();
-		this.Base_layers = new Base_layers_class();
+		this.BaseLayers = new BaseLayersClass();
 		this.ctx = ctx;
 		this.name = 'hexagon';
 		this.layer = {};
-		this.best_ratio = 1.1547005;
-		this.snap_line_info = {x: null, y: null};
-		this.coords = [
+		this.bestRatio = 1.1547005;
+		this.snapLineInfo = {x: null, y: null};
+		this.coordinates = [
 			[75, 6.698729810778069],
 			[100, 50],
 			[75, 93.30127018922192],
@@ -26,32 +25,32 @@ class Hexagon_class extends Base_tools_class {
 	}
 
 	load() {
-		this.default_events();
+		this.defaultEvents();
 	}
 
 	mousedown(e) {
-		this.shape_mousedown(e);
+		this.shapeMouseDown(e);
 	}
 
 	mousemove(e) {
-		this.shape_mousemove(e);
+		this.shapeMouseMove(e);
 	}
 
 	mouseup(e) {
-		this.shape_mouseup(e);
+		this.shapeMouseUp(e);
 	}
 
-	render_overlay(ctx){
-		var ctx = this.Base_layers.ctx;
-		this.render_overlay_parent(ctx);
+	renderOverlay(ctx) {
+		var ctx = this.BaseLayers.ctx;
+		this.renderOverlayParent(ctx);
 	}
 
 	demo(ctx, x, y, width, height) {
-		ctx.fillStyle = '#aaa';
+		ctx.fillStyle = '#AAA';
 		ctx.strokeStyle = '#555';
 		ctx.lineWidth = 2;
 
-		this.draw_shape(ctx, x, y - 5, width, height, this.coords);
+		this.drawShape(ctx, x, y - 5, width, height, this.coordinates);
 
 	}
 
@@ -61,32 +60,35 @@ class Hexagon_class extends Base_tools_class {
 
 		ctx.save();
 
-		//set styles
+		// Set styles
 		ctx.strokeStyle = 'transparent';
 		ctx.fillStyle = 'transparent';
-		if(params.border)
-			ctx.strokeStyle = params.border_color;
-		if(params.fill)
-			ctx.fillStyle = params.fill_color;
-		ctx.lineWidth = params.border_size;
+		
+		if (params.border)
+			ctx.strokeStyle = params.borderColor;
+		
+		if (params.fill)
+			ctx.fillStyle = params.fillColor;
+		
+		ctx.lineWidth = params.borderSize;
 
-		//draw with rotation support
+		// Draw with rotation support
 		ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
 		ctx.rotate(layer.rotate * Math.PI / 180);
-		this.draw_shape(ctx, -layer.width / 2, -layer.height / 2, layer.width, layer.height, this.coords);
+		this.drawShape(ctx, -layer.width / 2, -layer.height / 2, layer.width, layer.height, this.coords);
 
 		ctx.restore();
 	}
 
-	draw_shape(ctx, x, y, width, height, coords) {
+	drawShape(ctx, x, y, width, height, coordinates) {
 		ctx.lineJoin = "round";
 
 		ctx.beginPath();
 
-		ctx.scale(1, this.best_ratio);
+		ctx.scale(1, this.bestRatio);
 
-		for(var i in coords){
-			if(coords[i] === null){
+		for (var i in coordinates) {
+			if (coordinates[i] === null) {
 				ctx.closePath();
 				ctx.fill();
 				ctx.stroke();
@@ -94,21 +96,21 @@ class Hexagon_class extends Base_tools_class {
 				continue;
 			}
 
-			//coords in 100x100 box
-			var pos_x = x + coords[i][0] * width / 100;
-			var pos_y = y + coords[i][1] * height / 100;
+			// Coordinates in 100x100 box
+			var posX = x + coordinates[i][0] * width / 100;
+			var posY = y + coordinates[i][1] * height / 100;
 
-			if(i == '0')
-				ctx.moveTo(pos_x, pos_y);
+			if (i == '0')
+				ctx.moveTo(posX, posY);
 			else
-				ctx.lineTo(pos_x, pos_y);
+				ctx.lineTo(posX, posY);
 		}
+		
 		ctx.closePath();
 
 		ctx.fill();
 		ctx.stroke();
 	}
-
 }
 
-export default Hexagon_class;
+export default HexagonClass;
