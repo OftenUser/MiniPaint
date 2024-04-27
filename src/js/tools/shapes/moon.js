@@ -13,19 +13,19 @@ class MoonClass extends BaseToolsClass {
 	}
 
 	load() {
-		this.default_events();
+		this.defaultEvents();
 	}
 
 	mousedown(e) {
-		this.shape_mousedown(e);
+		this.shapeMouseDown(e);
 	}
 
 	mousemove(e) {
-		this.shape_mousemove(e);
+		this.shapeMouseMove(e);
 	}
 
 	mouseup(e) {
-		this.shape_mouseup(e);
+		this.shapeMouseUp(e);
 	}
 
 	renderOverlay(ctx) {
