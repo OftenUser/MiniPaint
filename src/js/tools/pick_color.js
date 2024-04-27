@@ -7,7 +7,7 @@ import BaseGUIClass from './../core/base-gui.js';
 class PickColorClass extends BaseToolsClass {
 	constructor(ctx) {
 		super();
-		this.BaseLauers = new BaseLayersClass();
+		this.BaseLayers = new BaseLayersClass();
 		this.Helper = new HelperClass();
 		this.BaseGUI = new BaseGUIClass();
 		this.ctx = ctx;
@@ -97,7 +97,7 @@ class PickColorClass extends BaseToolsClass {
 			var ctx = canvas.getContext("2d");
 			canvas.width = config.WIDTH;
 			canvas.height = config.HEIGHT;
-			this.BaseLayers.convertLayersToCanvas(ctx, null, false);
+			this.BaseLayers.convertLayerToCanvas(ctx, null, false);
 		}
 		
 		// Find color
@@ -107,7 +107,7 @@ class PickColorClass extends BaseToolsClass {
 		const newColorDefinition = {hex};
 		
 		if (c[3] > 0) {
-			//Set alpha
+			// Set alpha
 			newColorDefinition.a = c[3];
 		}
 		
