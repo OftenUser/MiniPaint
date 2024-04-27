@@ -1,67 +1,71 @@
 import app from './../app.js';
 import config from './../config.js';
-import Base_tools_class from './../core/base-tools.js';
-import Base_layers_class from './../core/base-layers.js';
-import Helper_class from './../libs/helpers.js';
+import BaseToolsClass from './../core/base-tools.js';
+import BaseLayersClass from './../core/base-layers.js';
+import HelperClass from './../libs/helpers.js';
 
-class Gradient_class extends Base_tools_class {
+class GradientClass extends BaseToolsClass {
 
 	constructor(ctx) {
 		super();
-		this.Base_layers = new Base_layers_class();
-		this.Helper = new Helper_class();
+		this.BaseLayers = new BaseLayersClass();
+		this.Helper = new HelperClass();
 		this.ctx = ctx;
 		this.name = 'gradient';
 		this.layer = {};
 	}
 
 	load() {
-		this.default_events();
+		this.defaultEvents();
 	}
 
 	mousedown(e) {
-		var mouse = this.get_mouse_info(e);
+		var mouse = this.getMouseInfo(e);
 		var params = this.getParams();
+		
 		if (mouse.click_valid == false)
 			return;
 
 		var name = this.name;
-		var is_vector = false;
+		var isVector = false;
+		
 		if (params.radial == true) {
-			name = 'Radial gradient';
-			is_vector = true;
+			name = 'Radial Gradient';
+			isVector = true;
 		}
 
-		//register new object - current layer is not ours or params changed
+		// Register new object - Current layer is not ours or params changed
 		this.layer = {
 			type: this.name,
-			name: this.Helper.ucfirst(name) + ' #' + this.Base_layers.auto_increment,
+			name: this.Helper.ucfirst(name) + ' #' + this.BaseLayers.autoIncrement,
 			params: this.clone(this.getParams()),
 			status: 'draft',
 			render_function: [this.name, 'render'],
 			x: mouse.x,
 			y: mouse.y,
 			rotate: null,
-			is_vector: is_vector,
+			is_vector: isVector,
 			color: null,
 			data: {
 				center_x: mouse.x,
 				center_y: mouse.y,
 			},
 		};
-		app.State.do_action(
-			new app.Actions.Bundle_action('new_gradient_layer', 'New Gradient Layer', [
-				new app.Actions.Insert_layer_action(this.layer)
+		app.State.doAction(
+			new app.Actions.BundleAction('new_gradient_layer', 'New Gradient Layer', [
+				new app.Actions.InsertLayerAction(this.layer)
 			])
 		);
 	}
 
 	mousemove(e) {
-		var mouse = this.get_mouse_info(e);
+		var mouse = this.getMouseInfo(e);
 		var params = this.getParams();
-		if (mouse.is_drag == false)
+		
+		if (mouse.isDrag == false)
 			return;
-		if (mouse.click_valid == false) {
+		
+		if (mouse.clickValid == false) {
 			return;
 		}
 
@@ -69,23 +73,23 @@ class Gradient_class extends Base_tools_class {
 		var height = mouse.y - this.layer.y;
 
 		if (params.radial == true) {
-			config.layer.x = this.layer.data.center_x - width;
-			config.layer.y = this.layer.data.center_y - height;
+			config.layer.x = this.layer.data.centerX - width;
+			config.layer.y = this.layer.data.centerY - height;
 			config.layer.width = width * 2;
 			config.layer.height = height * 2;
-		}
-		else {
+		} else {
 			config.layer.width = width;
 			config.layer.height = height;
 		}
 
-		this.Base_layers.render();
+		this.BaseLayers.render();
 	}
 
 	mouseup(e) {
-		var mouse = this.get_mouse_info(e);
+		var mouse = this.getMouseInfo(e);
 		var params = this.getParams();
-		if (mouse.click_valid == false) {
+		
+		if (mouse.clickValid == false) {
 			config.layer.status = null;
 			return;
 		}
@@ -94,34 +98,35 @@ class Gradient_class extends Base_tools_class {
 		var height = mouse.y - this.layer.y;
 
 		if (width == 0 && height == 0) {
-			//same coordinates - cancel
-			app.State.scrap_last_action();
+			// Same coordinates - Cancel
+			app.State.scrapLastAction();
 			return;
 		}
 
-		let new_settings = {};
+		let newSettings = {};
+		
 		if (params.radial == true) {
-			new_settings = {
-				x: this.layer.data.center_x - width,
-				y: this.layer.data.center_y - height,
+			newSettings = {
+				x: this.layer.data.centerX - width,
+				y: this.layer.data.centerY - height,
 				width: width * 2,
 				height: height * 2
 			}
-		}
-		else {
-			new_settings = {
+		} else {
+			newSettings = {
 				width,
 				height
 			}
 		}
-		new_settings.status = null;
+		
+		newSettings.status = null;
 
-		app.State.do_action(
-			new app.Actions.Update_layer_action(config.layer.id, new_settings),
-			{ merge_with_history: 'new_gradient_layer' }
+		app.State.doAction(
+			new app.Actions.UpdateLayerAction(config.layer.id, newSettings),
+			{merge_with_history: 'new_gradient_layer'}
 		);
 
-		this.Base_layers.render();
+		this.BaseLayers.render();
 	}
 
 	render(ctx, layer) {
@@ -129,26 +134,29 @@ class Gradient_class extends Base_tools_class {
 			return;
 
 		var params = layer.params;
-		var power = params.radial_power;
-		if(power > 99){
+		var power = params.radialPower;
+		
+		if (power > 99) {
 			power = 99;
 		}
+		
 		var alpha = params.alpha / 100 * 255;
-		if(power > 255){
+		
+		if (power > 255) {
 			power = 255;
 		}
 
-		var color1 = params.color_1;
-		var color2 = params.color_2;
+		var color1 = params.color1;
+		var color2 = params.color2;
 		var radial = params.radial;
 
-		var color2_rgb = this.Helper.hexToRgb(color2);
+		var color2RGB = this.Helper.hexToRGB(color2);
 
 		var width = layer.x + layer.width - 1;
 		var height = layer.y + layer.height - 1;
 
 		if (radial == false) {
-			//linear
+			// Linear
 			ctx.beginPath();
 			ctx.rect(0, 0, config.WIDTH, config.HEIGHT);
 			var grd = ctx.createLinearGradient(
@@ -156,29 +164,28 @@ class Gradient_class extends Base_tools_class {
 				width, height);
 
 			grd.addColorStop(0, color1);
-			grd.addColorStop(1, "rgba(" + color2_rgb.r + ", " + color2_rgb.g + ", "
-				+ color2_rgb.b + ", " + alpha / 255 + ")");
+			grd.addColorStop(1, "rgba(" + color2RGB.r + ", " + color2RGB.g + ", "
+				+ color2RGB.b + ", " + alpha / 255 + ")");
 			ctx.fillStyle = grd;
 			ctx.fill();
-		}
-		else {
-			//radial
-			var dist_x = layer.width;
-			var dist_y = layer.height;
-			var center_x = layer.x + Math.round(layer.width / 2);
-			var center_y = layer.y + Math.round(layer.height / 2);
-			var distance = Math.sqrt((dist_x * dist_x) + (dist_y * dist_y));
+		} else {
+			// Radial
+			var distanceX = layer.width;
+			var distanceY = layer.height;
+			var centerX = layer.x + Math.round(layer.width / 2);
+			var centerY = layer.y + Math.round(layer.height / 2);
+			var distance = Math.sqrt((distanceX * distanceX) + (distanceY * distanceY));
 			var radgrad = ctx.createRadialGradient(
-				center_x, center_y, distance * power / 100,
-				center_x, center_y, distance);
+				centerX, centerY, distance * power / 100,
+				centerX, centerY, distance);
 
 			radgrad.addColorStop(0, color1);
-			radgrad.addColorStop(1, "rgba(" + color2_rgb.r + ", " + color2_rgb.g + ", "
-				+ color2_rgb.b + ", " + alpha / 255 + ")");
+			radgrad.addColorStop(1, "rgba(" + color2RGB.r + ", " + color2RGB.g + ", "
+				+ color2RGB.b + ", " + alpha / 255 + ")");
 			ctx.fillStyle = radgrad;
 			ctx.fillRect(0, 0, config.WIDTH, config.HEIGHT);
 		}
 	}
-
 }
-export default Gradient_class;
+
+export default GradientClass;
